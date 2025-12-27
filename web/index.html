@@ -244,6 +244,10 @@
               <button id="historyToDashboardBtn" class="btn btn--ghost" data-i18n="history.open_in_dashboard">在控制台打开</button>
               <button id="historyExportMdBtn" class="btn btn--ghost" data-i18n="dash.export_md">导出 .md</button>
               <button id="historyExportJsonBtn" class="btn btn--ghost" data-i18n="dash.export_json">导出 .json</button>
+              <label class="check" data-i18n-title="md.render_title">
+                <input id="historyRenderMdToggle" type="checkbox" />
+                <span data-i18n="md.render">MD 渲染</span>
+              </label>
             </div>
             <div class="row">
               <input
@@ -513,6 +517,10 @@
               <div id="askStatusPill" class="pill pill--muted" data-i18n="ask.status_idle">就绪</div>
               <button id="askExportMdBtn" class="btn btn--ghost" data-i18n="ask.export_md">导出 .md</button>
               <button id="askExportJsonlBtn" class="btn btn--ghost" data-i18n="ask.export_jsonl">导出 .jsonl</button>
+              <label class="check" data-i18n-title="md.render_title">
+                <input id="askRenderMdToggle" type="checkbox" />
+                <span data-i18n="md.render">MD 渲染</span>
+              </label>
             </div>
             <div id="askMessages" class="chat">(暂无消息)</div>
             <details id="askQueuePanel" class="details">

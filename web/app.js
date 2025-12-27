@@ -196,7 +196,9 @@ const UI_LANG_KEY = 'uiLang';
 const WORKSPACE_ID_KEY = 'workspaceId';
 const ASK_THREADS_COLLAPSED_KEY = 'askThreadsCollapsed';
 const ASK_CONFIG_COLLAPSED_KEY = 'askConfigCollapsed';
+const ASK_RENDER_MD_KEY = 'askRenderMd';
 const HISTORY_LIST_COLLAPSED_KEY = 'historyListCollapsed';
+const HISTORY_RENDER_MD_KEY = 'historyRenderMd';
 
 function parseStoredBool(value, fallback) {
   if (value === undefined || value === null) return fallback;
@@ -223,6 +225,7 @@ function setStoredBool(key, value) {
 function loadAskLayoutPrefs() {
   state.askThreadsCollapsed = getStoredBool(ASK_THREADS_COLLAPSED_KEY, false);
   state.askConfigCollapsed = getStoredBool(ASK_CONFIG_COLLAPSED_KEY, false);
+  state.askRenderMarkdown = getStoredBool(ASK_RENDER_MD_KEY, false);
 }
 
 function persistAskLayoutPrefs() {
@@ -232,6 +235,7 @@ function persistAskLayoutPrefs() {
 
 function loadHistoryLayoutPrefs() {
   state.historyListCollapsed = getStoredBool(HISTORY_LIST_COLLAPSED_KEY, false);
+  state.historyRenderMarkdown = getStoredBool(HISTORY_RENDER_MD_KEY, false);
 }
 
 function persistHistoryLayoutPrefs() {
@@ -364,6 +368,8 @@ const I18N = {
     'md.kind_path': '文件',
     'md.path_placeholder': '相对工作区根目录，例如 docs/plan.md',
     'md.load': '加载',
+    'md.render': 'MD 渲染',
+    'md.render_title': '将内容按 Markdown 渲染（手机如有问题可关闭）',
     'md.truncated': '（已截断）',
     'model.preset_title': '选择模型预设（移动端推荐）',
     'model.preset_placeholder': 'model（预设）',
@@ -651,6 +657,8 @@ const I18N = {
     'md.kind_path': 'File',
     'md.path_placeholder': 'Path relative to workspace root (e.g. docs/plan.md)',
     'md.load': 'Load',
+    'md.render': 'Render MD',
+    'md.render_title': 'Render content as Markdown (turn off if it looks wrong on mobile)',
     'md.truncated': '(truncated)',
     'model.preset_title': 'Pick a model preset (mobile-friendly)',
     'model.preset_placeholder': 'model presets',
@@ -935,6 +943,7 @@ const state = {
   historyRunId: null,
   historyRunDetail: null,
   historyListCollapsed: false,
+  historyRenderMarkdown: false,
   page: 'dashboard',
   tab: 'manager',
   mdKind: 'plan',
@@ -969,9 +978,12 @@ const state = {
   askPollToken: 0,
   askThreads: [],
   askThreadId: null,
+  askThreadsSig: null,
   askMessages: [],
+  askMessagesSig: null,
   askMessageOpen: {},
   askQueueItems: [],
+  askQueueSig: null,
   askQueueItemOpen: {},
   askQueueEditId: null,
   askQueueEditText: '',
@@ -981,6 +993,7 @@ const state = {
   askForceScrollToBottom: false,
   askThreadsCollapsed: false,
   askConfigCollapsed: false,
+  askRenderMarkdown: false,
   askSse: null,
   askSseKey: null,
   askSseRefreshTimer: null,
@@ -1056,6 +1069,41 @@ function selectedRun() {
 
 function selectedAskThread() {
   return state.askThreads.find((t) => t.id === state.askThreadId) || null;
+}
+
+function askThreadsSignature(items) {
+  const threads = Array.isArray(items) ? items : [];
+  return threads
+    .map((t) => {
+      const id = String(t?.id || '');
+      const updatedAt = Number(t?.updatedAt || 0);
+      const busy = t?.busy ? '1' : '0';
+      return `${id}:${updatedAt}:${busy}`;
+    })
+    .join('|');
+}
+
+function askMessagesSignature(threadId, items) {
+  const msgs = Array.isArray(items) ? items : [];
+  const n = msgs.length;
+  const firstId = n ? String(msgs[0]?.id || '') : '';
+  const last = n ? msgs[n - 1] : null;
+  const lastId = last ? String(last?.id || '') : '';
+  const lastTs = last ? Number(last?.createdAt || 0) : 0;
+  const lastLen = last ? Number(String(last?.text || '').length) : 0;
+  return `${String(threadId || '')}|${n}|${firstId}|${lastId}|${lastTs}|${lastLen}`;
+}
+
+function askQueueSignature(threadId, items) {
+  const queue = Array.isArray(items) ? items : [];
+  const parts = queue.map((it) => {
+    const id = String(it?.id || '');
+    const status = String(it?.status || '');
+    const updatedAt = Number(it?.updatedAt || 0);
+    const err = it?.error ? String(it.error) : '';
+    return `${id}:${status}:${updatedAt}:${err}`;
+  });
+  return `${String(threadId || '')}|${parts.join('|')}`;
 }
 
 function sessionLabel(s) {
@@ -1479,6 +1527,158 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
+function safeMarkdownLinkHref(rawUrl) {
+  const s = String(rawUrl || '').trim();
+  if (!s) return '';
+  const unwrapped = s.startsWith('<') && s.endsWith('>') ? s.slice(1, -1).trim() : s;
+  try {
+    const u = new URL(unwrapped, window.location.origin);
+    if (['http:', 'https:', 'mailto:'].includes(u.protocol)) return u.href;
+  } catch {}
+  return '';
+}
+
+function extractMarkdownCodeSpans(text) {
+  const codes = [];
+  const replaced = String(text || '').replace(/`([^`\n]+)`/g, (_, code) => {
+    const idx = codes.push(String(code)) - 1;
+    return `@@MD_CODE_${idx}@@`;
+  });
+  return { text: replaced, codes };
+}
+
+function extractMarkdownLinks(text) {
+  const links = [];
+  const replaced = String(text || '').replace(/\[([^\]\n]+)\]\(([^)\n]+)\)/g, (_, label, url) => {
+    const idx = links.push({ label: String(label), url: String(url) }) - 1;
+    return `@@MD_LINK_${idx}@@`;
+  });
+  return { text: replaced, links };
+}
+
+function renderMarkdownInline(rawText) {
+  const raw = String(rawText || '');
+  const { text: withCodes, codes } = extractMarkdownCodeSpans(raw);
+  const { text: withLinks, links } = extractMarkdownLinks(withCodes);
+
+  let out = escapeHtml(withLinks);
+
+  // Bold / italic (minimal, safe).
+  out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+
+  // Restore links.
+  out = out.replace(/@@MD_LINK_(\d+)@@/g, (_, i) => {
+    const link = links[Number(i)];
+    if (!link) return '';
+    const href = safeMarkdownLinkHref(link.url);
+    const label = escapeHtml(link.label);
+    if (!href) return label;
+    return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  });
+
+  // Restore code spans.
+  out = out.replace(/@@MD_CODE_(\d+)@@/g, (_, i) => {
+    const code = codes[Number(i)] ?? '';
+    return `<code class="md__code">${escapeHtml(code)}</code>`;
+  });
+
+  return out;
+}
+
+function renderMarkdownSafe(rawText) {
+  const src = String(rawText || '').replace(/\r\n?/g, '\n');
+  if (!src) return '';
+  const lines = src.split('\n');
+  const blocks = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i] ?? '';
+
+    const fence = line.match(/^```(\S*)\s*$/);
+    if (fence) {
+      const lang = String(fence[1] || '').trim();
+      i += 1;
+      const codeLines = [];
+      while (i < lines.length && !String(lines[i] || '').match(/^```\s*$/)) {
+        codeLines.push(lines[i]);
+        i += 1;
+      }
+      if (i < lines.length && String(lines[i] || '').match(/^```\s*$/)) i += 1;
+      const cls = lang ? ` class="language-${escapeHtml(lang)}"` : '';
+      blocks.push(`<pre class="md__pre"><code${cls}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+      continue;
+    }
+
+    if (!String(line || '').trim()) {
+      i += 1;
+      continue;
+    }
+
+    const heading = String(line || '').match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      const level = heading[1].length;
+      blocks.push(`<h${level} class="md__h">${renderMarkdownInline(heading[2])}</h${level}>`);
+      i += 1;
+      continue;
+    }
+
+    if (String(line || '').match(/^>\s?/)) {
+      const quoteLines = [];
+      while (i < lines.length && String(lines[i] || '').match(/^>\s?/)) {
+        quoteLines.push(String(lines[i] || '').replace(/^>\s?/, ''));
+        i += 1;
+      }
+      const inner = renderMarkdownInline(quoteLines.join('\n')).replace(/\n/g, '<br>');
+      blocks.push(`<blockquote class="md__blockquote">${inner}</blockquote>`);
+      continue;
+    }
+
+    if (String(line || '').match(/^\s*[-+*]\s+/)) {
+      const items = [];
+      while (i < lines.length) {
+        const m = String(lines[i] || '').match(/^\s*[-+*]\s+(.*)$/);
+        if (!m) break;
+        items.push(`<li>${renderMarkdownInline(m[1])}</li>`);
+        i += 1;
+      }
+      blocks.push(`<ul class="md__ul">${items.join('')}</ul>`);
+      continue;
+    }
+
+    if (String(line || '').match(/^\s*\d+\.\s+/)) {
+      const items = [];
+      while (i < lines.length) {
+        const m = String(lines[i] || '').match(/^\s*\d+\.\s+(.*)$/);
+        if (!m) break;
+        items.push(`<li>${renderMarkdownInline(m[1])}</li>`);
+        i += 1;
+      }
+      blocks.push(`<ol class="md__ol">${items.join('')}</ol>`);
+      continue;
+    }
+
+    const paraLines = [line];
+    i += 1;
+    while (i < lines.length) {
+      const next = String(lines[i] || '');
+      if (!next.trim()) break;
+      if (next.match(/^```/)) break;
+      if (next.match(/^(#{1,6})\s+/)) break;
+      if (next.match(/^>\s?/)) break;
+      if (next.match(/^\s*[-+*]\s+/)) break;
+      if (next.match(/^\s*\d+\.\s+/)) break;
+      paraLines.push(next);
+      i += 1;
+    }
+    const html = renderMarkdownInline(paraLines.join('\n')).replace(/\n/g, '<br>');
+    blocks.push(`<p class="md__p">${html}</p>`);
+  }
+
+  return blocks.join('');
+}
+
 function isLongText(text, { maxChars = 1400, maxLines = 3 } = {}) {
   const t0 = String(text || '');
   if (t0.length > maxChars) return true;
@@ -1541,6 +1741,20 @@ function renderHistoryDetail() {
       const eoPreview = escapeHtml(previewLines(eoRaw, 3));
       const emPreview = escapeHtml(previewLines(emRaw, 3));
 
+      const emptyHtml = escapeHtml(t('placeholder.empty'));
+      const mpBody = state.historyRenderMarkdown
+        ? `<div class="pre pre--manager md">${renderMarkdownSafe(mpRaw) || emptyHtml}</div>`
+        : `<pre class="pre pre--manager">${mp || t('placeholder.empty')}</pre>`;
+      const moBody = state.historyRenderMarkdown
+        ? `<div class="pre pre--manager md">${renderMarkdownSafe(moRaw) || emptyHtml}</div>`
+        : `<pre class="pre pre--manager">${mo || t('placeholder.empty')}</pre>`;
+      const epBody = state.historyRenderMarkdown
+        ? `<div class="pre pre--executor md">${renderMarkdownSafe(epRaw) || emptyHtml}</div>`
+        : `<pre class="pre pre--executor">${ep || t('placeholder.empty')}</pre>`;
+      const eoBody = state.historyRenderMarkdown
+        ? `<div class="pre pre--executor md">${renderMarkdownSafe(eoRaw) || emptyHtml}</div>`
+        : `<pre class="pre pre--executor">${eo || t('placeholder.empty')}</pre>`;
+
       return `<div class="list__item">
   <div class="list__title">${t('label.turn')} ${turn.idx}</div>
   <details>
@@ -1548,14 +1762,14 @@ function renderHistoryDetail() {
       <span class="mono">${t('label.manager_prompt')}</span>
       <span class="hist__summaryPreview">${mpPreview}</span>
     </summary>
-    <pre class="pre pre--manager">${mp || t('placeholder.empty')}</pre>
+    ${mpBody}
   </details>
   <details>
     <summary class="hist__summary">
       <span class="mono">${t('label.manager_output')}</span>
       <span class="hist__summaryPreview">${moPreview}</span>
     </summary>
-    <pre class="pre pre--manager">${mo || t('placeholder.empty')}</pre>
+    ${moBody}
   </details>
   <details>
     <summary class="hist__summary">
@@ -1569,14 +1783,14 @@ function renderHistoryDetail() {
       <span class="mono">${t('label.executor_prompt')}</span>
       <span class="hist__summaryPreview">${epPreview}</span>
     </summary>
-    <pre class="pre pre--executor">${ep || t('placeholder.empty')}</pre>
+    ${epBody}
   </details>
   <details>
     <summary class="hist__summary">
       <span class="mono">${t('label.executor_output')}</span>
       <span class="hist__summaryPreview">${eoPreview}</span>
     </summary>
-    <pre class="pre pre--executor">${eo || t('placeholder.empty')}</pre>
+    ${eoBody}
   </details>
   <details>
     <summary class="hist__summary">
@@ -1702,13 +1916,16 @@ function renderAskMessages() {
       const open = hasOpen ? Boolean(state.askMessageOpen[msgId]) : false;
       const openAttr = open ? ' open' : '';
       const preview = escapeHtml(previewLines(rawText, 3));
+      const body = state.askRenderMarkdown
+        ? `<div class="chat__bubble md">${renderMarkdownSafe(rawText) || ''}</div>`
+        : `<pre class="chat__bubble">${text || ''}</pre>`;
       return `<details class="chat__msg chat__msg--${roleLabel}" data-ask-msg-id="${escapeHtml(msgId)}"${openAttr}>
   <summary class="chat__summary">
     <span class="chat__summaryMeta mono">${escapeHtml(roleLabel)} · ${escapeHtml(ts)}</span>
     <span class="chat__summaryPreview">${preview}</span>
   </summary>
   ${outDir ? `<div class="chat__meta mono">outDir: ${outDir}</div>` : ''}
-  <pre class="chat__bubble">${text || ''}</pre>
+  ${body}
 </details>`;
     })
     .join('');
@@ -1939,12 +2156,36 @@ function renderAskThread() {
   q('#askEffortView').textContent = cfg.model_reasoning_effort || '-';
   q('#askSandboxView').textContent = cfg.sandbox || '-';
 
-  q('#askTitleInput').value = thread.title || '';
-  q('#askModelInput').value = cfg.model || '';
-  q('#askEffortSelect').value = cfg.model_reasoning_effort || '';
-  q('#askSandboxSelect').value = cfg.sandbox || 'read-only';
-  setModelInputProvider(q('#askModelInput'), thread.provider);
-  refreshModelPresetSelect(q('#askModelPreset'), q('#askModelInput'), thread.provider);
+  const titleInput = q('#askTitleInput');
+  const modelInput = q('#askModelInput');
+  const effortSelect = q('#askEffortSelect');
+  const sandboxSelect = q('#askSandboxSelect');
+  const modelPreset = q('#askModelPreset');
+
+  const active = (() => {
+    try {
+      return document.activeElement;
+    } catch {
+      return null;
+    }
+  })();
+
+  const nextTitle = String(thread.title || '');
+  if (titleInput && active !== titleInput && titleInput.value !== nextTitle) titleInput.value = nextTitle;
+
+  const nextModel = String(cfg.model || '');
+  if (modelInput && active !== modelInput && modelInput.value !== nextModel) modelInput.value = nextModel;
+
+  const nextEffort = String(cfg.model_reasoning_effort || '');
+  if (effortSelect && active !== effortSelect && effortSelect.value !== nextEffort) effortSelect.value = nextEffort;
+
+  const nextSandbox = String(cfg.sandbox || 'read-only');
+  if (sandboxSelect && active !== sandboxSelect && sandboxSelect.value !== nextSandbox) sandboxSelect.value = nextSandbox;
+
+  setModelInputProvider(modelInput, thread.provider);
+  if (modelPreset && modelInput && active !== modelPreset && active !== modelInput) {
+    refreshModelPresetSelect(modelPreset, modelInput, thread.provider);
+  }
 
   if (pill) {
     const busy = Boolean(state.askSendInFlight || state.askRecovering || thread.busy);
@@ -2538,25 +2779,54 @@ async function loadAskThreads(workspaceId) {
   const data = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/ask/threads`, {
     headers: { ...authHeaders() },
   });
-  state.askThreads = data.items || [];
-  if (state.askThreadId && !state.askThreads.some((t) => t.id === state.askThreadId)) {
+  const items = data.items || [];
+  const threadsSig = askThreadsSignature(items);
+  const threadsChanged = threadsSig !== state.askThreadsSig;
+  if (threadsChanged) {
+    state.askThreads = items;
+    state.askThreadsSig = threadsSig;
+  }
+
+  let selectionChanged = false;
+  if (state.askThreadId && !items.some((t) => t.id === state.askThreadId)) {
     state.askThreadId = null;
     state.askMessages = [];
+    state.askMessagesSig = null;
     state.askQueueItems = [];
+    state.askQueueSig = null;
     state.askQueueItemOpen = {};
     state.askQueueEditId = null;
     state.askQueueEditText = '';
     state.askDebugText = '';
+    selectionChanged = true;
   }
-  if (!state.askThreadId && state.askThreads.length) {
-    state.askThreadId = state.askThreads[0].id;
+  if (!state.askThreadId && items.length) {
+    state.askThreadId = items[0].id;
+    state.askMessages = [];
+    state.askMessagesSig = null;
+    state.askQueueItems = [];
+    state.askQueueSig = null;
+    selectionChanged = true;
     await loadAskMessages(state.askThreadId).catch(toast);
     await loadAskQueue(state.askThreadId).catch(toast);
   }
-  renderAskThreads();
-  renderAskThread();
-  renderAskQueue();
-  maybeStartAskRecovery();
+  if (threadsChanged || selectionChanged) {
+    renderAskThreads();
+    renderAskThread();
+    if (!state.askThreadId) {
+      renderAskMessages();
+      renderAskQueue();
+    }
+  }
+
+  const shouldEnsureRecovery = (() => {
+    if (threadsChanged || selectionChanged) return true;
+    const th = selectedAskThread();
+    if (!th) return false;
+    if (state.askPollTimer) return false;
+    return Boolean(th.busy) || hasPendingAskQueue(state.askQueueItems);
+  })();
+  if (shouldEnsureRecovery) maybeStartAskRecovery();
 }
 
 async function loadAskMessages(threadId) {
@@ -2565,7 +2835,11 @@ async function loadAskMessages(threadId) {
   const data = await fetchJson(`/api/ask/threads/${encodeURIComponent(threadId)}/messages?limit=2000`, {
     headers: { ...authHeaders() },
   });
-  state.askMessages = data.items || [];
+  const items = data.items || [];
+  const sig = askMessagesSignature(threadId, items);
+  if (sig === state.askMessagesSig) return;
+  state.askMessages = items;
+  state.askMessagesSig = sig;
   renderAskMessages();
 }
 
@@ -2575,7 +2849,11 @@ async function loadAskQueue(threadId) {
   const data = await fetchJson(`/api/ask/threads/${encodeURIComponent(threadId)}/queue?limit=200`, {
     headers: { ...authHeaders() },
   });
-  state.askQueueItems = data.items || [];
+  const items = data.items || [];
+  const sig = askQueueSignature(threadId, items);
+  if (sig === state.askQueueSig) return;
+  state.askQueueItems = items;
+  state.askQueueSig = sig;
   if (state.askQueueEditId) return;
   renderAskQueue();
 }
@@ -2817,6 +3095,7 @@ async function selectAskThreadById(threadId) {
   state.askDebugText = '';
   state.askForceScrollToBottom = true;
   state.askQueueItems = [];
+  state.askQueueSig = null;
   state.askQueueItemOpen = {};
   state.askQueueEditId = null;
   state.askQueueEditText = '';
@@ -3053,8 +3332,11 @@ async function deleteAskThreadFromUi() {
   });
 
   state.askThreadId = null;
+  state.askThreadsSig = null;
   state.askMessages = [];
+  state.askMessagesSig = null;
   state.askQueueItems = [];
+  state.askQueueSig = null;
   state.askQueueItemOpen = {};
   state.askQueueEditId = null;
   state.askQueueEditText = '';
@@ -3511,9 +3793,12 @@ function initHandlers() {
     clearFilesImageUrl();
     state.askThreadId = null;
     state.askThreads = [];
+    state.askThreadsSig = null;
     state.askMessages = [];
+    state.askMessagesSig = null;
     state.askMessageOpen = {};
     state.askQueueItems = [];
+    state.askQueueSig = null;
     state.askQueueItemOpen = {};
     state.askQueueEditId = null;
     state.askQueueEditText = '';
@@ -3613,6 +3898,15 @@ function initHandlers() {
     if (!state.historyRunId) return toast('RUN_NOT_SELECTED');
     exportRunById(state.historyRunId, 'json').catch(toast);
   });
+  const historyMdToggle = q('#historyRenderMdToggle');
+  if (historyMdToggle) {
+    historyMdToggle.checked = Boolean(state.historyRenderMarkdown);
+    historyMdToggle.addEventListener('change', (e) => {
+      state.historyRenderMarkdown = Boolean(e.target.checked);
+      setStoredBool(HISTORY_RENDER_MD_KEY, state.historyRenderMarkdown);
+      renderHistoryDetail();
+    });
+  }
 
   q('#refreshCapabilitiesBtn').addEventListener('click', () => loadCapabilities().catch(toast));
   q('#probeCapabilitiesBtn').addEventListener('click', () => probeCapabilities().catch(toast));
@@ -3818,6 +4112,15 @@ function initHandlers() {
   });
   q('#askExportMdBtn').addEventListener('click', () => exportAskThread('md').catch(toast));
   q('#askExportJsonlBtn').addEventListener('click', () => exportAskThread('jsonl').catch(toast));
+  const askMdToggle = q('#askRenderMdToggle');
+  if (askMdToggle) {
+    askMdToggle.checked = Boolean(state.askRenderMarkdown);
+    askMdToggle.addEventListener('change', (e) => {
+      state.askRenderMarkdown = Boolean(e.target.checked);
+      setStoredBool(ASK_RENDER_MD_KEY, state.askRenderMarkdown);
+      renderAskMessages();
+    });
+  }
   q('#askSaveTitleBtn').addEventListener('click', () => saveAskTitleFromUi().catch(toast));
   q('#askSaveConfigBtn').addEventListener('click', () => saveAskConfigFromUi().catch(toast));
   q('#askResetResumeBtn').addEventListener('click', () => resetAskResumeFromUi().catch(toast));

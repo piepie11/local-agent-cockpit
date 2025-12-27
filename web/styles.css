@@ -839,6 +839,67 @@ details[open] > .hist__summary > .hist__summaryPreview {
   background: color-mix(in srgb, var(--card) 92%, #000);
 }
 
+.md {
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.md__p {
+  margin: 0 0 10px 0;
+}
+
+.md__p:last-child {
+  margin-bottom: 0;
+}
+
+.md__h {
+  margin: 10px 0 8px 0;
+  font-weight: 700;
+}
+
+.md__ul,
+.md__ol {
+  margin: 0 0 10px 22px;
+  padding: 0;
+}
+
+.md__blockquote {
+  margin: 0 0 10px 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--border);
+  color: color-mix(in srgb, var(--text) 85%, var(--muted));
+}
+
+.md__pre {
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, #000);
+  overflow: auto;
+  max-width: 100%;
+}
+
+.md__pre code {
+  white-space: pre;
+}
+
+.md__code {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 88%, #000);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.md a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .sessionInfo {
   margin-top: 8px;
   border: 1px solid var(--border);
