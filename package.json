@@ -1,0 +1,37 @@
+{
+  "name": "local-agent-cockpit",
+  "version": "0.0.1",
+  "description": "Mobile-friendly local Web control plane for orchestrating CLI agents (Manager <-> Executor)",
+  "private": true,
+  "type": "commonjs",
+  "license": "MIT",
+  "scripts": {
+    "up": "node scripts/up.js",
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "test": "npm run m2:api:e2e && npm run m4:ask:e2e && npm run m5:files:e2e && npm run m6:notify:e2e && npm run m7:ask:sse:e2e",
+    "m0:smoke": "node scripts/codex_smoke.js",
+    "m0:roundtrip": "node scripts/m0_roundtrip.js",
+    "m1:e2e:fake": "node scripts/m1_e2e_fake.js",
+    "m1:e2e:codex": "node scripts/m1_e2e_codex_readonly.js",
+    "m1:e2e:claude": "node scripts/m1_e2e_claude_readonly.js",
+    "m2:api:e2e": "node scripts/m2_api_e2e.js",
+    "m3:capabilities": "node scripts/m3_capabilities.js",
+    "m3:e2e:codex:resume": "node scripts/m3_e2e_codex_resume.js",
+    "m3:e2e:claude:resume": "node scripts/m3_e2e_claude_resume.js",
+    "m3:e2e:mixed:resume": "node scripts/m3_e2e_mixed_resume.js",
+    "m3:e2e:rollover": "node scripts/m3_rollover_e2e.js",
+    "m4:ask:e2e": "node scripts/m4_ask_e2e.js",
+    "m5:files:e2e": "node scripts/m5_files_e2e.js",
+    "m6:notify:e2e": "node scripts/m6_notify_e2e.js",
+    "m7:ask:sse:e2e": "node scripts/m7_ask_sse_e2e.js",
+    "m3:deep": "npm run m2:deep && npm run m3:capabilities && npm run m3:e2e:codex:resume && npm run m3:e2e:claude:resume && npm run m3:e2e:mixed:resume && npm run m3:e2e:rollover && npm run m4:ask:e2e && npm run m5:files:e2e",
+    "m2:deep": "npm run m0:smoke && npm run m0:roundtrip && npm run m1:e2e:fake && npm run m1:e2e:codex && npm run m1:e2e:claude && npm run m2:api:e2e"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

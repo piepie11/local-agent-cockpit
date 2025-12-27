@@ -1,0 +1,23 @@
+# Runtime artifacts
+runs/
+data/
+
+# Dependencies
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs / coverage
+*.log
+coverage/
+
+# Local env (secrets)
+.env
+.env.*
+!.env.example
