@@ -1,6 +1,6 @@
 # 项目工程公约（通用默认稿）
 
-> 用途：当某个 workspace（目标项目）**找不到其约定文件**时，`local-agent-cockpit` 会把本文件作为“默认工程公约”注入到 Manager/Executor 的提示词中。  
+> 用途：当某个 workspace（目标项目）**找不到其约定文件**时，`auto_codex` 会把本文件作为“默认工程公约”注入到 Manager/Executor 的提示词中。  
 > 约定文件路径来自 workspace 注册的 `conventionPath`；若未配置，默认使用 `<workspaceRoot>/约定.md`。  
 > 建议：把本文件复制到你的项目根目录作为 `约定.md`（或你配置的 `conventionPath` 指向的文件名），再按项目实际情况裁剪/补充（让规则成为“项目的一部分”，而不是只在编排器里生效）。
 

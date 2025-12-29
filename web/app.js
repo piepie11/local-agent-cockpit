@@ -6,6 +6,12 @@ function qa(sel) {
   return Array.from(document.querySelectorAll(sel));
 }
 
+function mustGetEl(sel) {
+  const el = q(sel);
+  if (!el) throw new Error(`MISSING_ELEMENT: ${sel}`);
+  return el;
+}
+
 function eventTargetElement(target) {
   const t = target;
   if (!t) return null;
@@ -199,6 +205,7 @@ const ASK_CONFIG_COLLAPSED_KEY = 'askConfigCollapsed';
 const ASK_RENDER_MD_KEY = 'askRenderMd';
 const HISTORY_LIST_COLLAPSED_KEY = 'historyListCollapsed';
 const HISTORY_RENDER_MD_KEY = 'historyRenderMd';
+const ONBOARDING_HIDE_KEY = 'ui.hideOnboardingEmptyWorkspace';
 
 function parseStoredBool(value, fallback) {
   if (value === undefined || value === null) return fallback;
@@ -303,8 +310,8 @@ const I18N = {
     'top.workspace_select_title': '工作区',
     'top.add_workspace_title': '添加工作区',
     'top.add': '新增',
-    'top.ask': '随口问',
-    'top.ask_title': '打开随口问（新窗口）',
+    'top.ask': 'Codex 用户窗口',
+    'top.ask_title': '打开 Codex 用户窗口（新窗口）',
     'top.admin_token_label': '口令（ADMIN_TOKEN）',
     'top.admin_token_placeholder': '写操作必填',
     'top.lang_toggle': 'EN',
@@ -313,9 +320,34 @@ const I18N = {
     'nav.dashboard': '控制台',
     'nav.history': '历史',
     'nav.sessions': '会话',
-    'nav.ask': '随口问',
+    'nav.ask': 'Codex 用户窗口',
     'nav.files': '文件',
     'nav.settings': '设置',
+
+    'workspace_modal.title': '新建工作区',
+    'workspace_modal.name_label': '名称（可选）',
+    'workspace_modal.name_placeholder': '名称（可选）',
+    'workspace_modal.root_label': 'rootPath（必填）',
+    'workspace_modal.root_placeholder': 'rootPath（绝对路径）',
+    'workspace_modal.plan_label': 'planPath（默认 plan.md）',
+    'workspace_modal.plan_placeholder': 'plan.md',
+    'workspace_modal.convention_label': 'conventionPath（默认 约定.md）',
+    'workspace_modal.convention_placeholder': '约定.md',
+    'workspace_modal.allowed_title': '允许的 rootPath（来自 /api/health）',
+    'workspace_modal.allowed_hint': 'rootPath 必须位于允许列表内，否则会 PATH_NOT_ALLOWED。',
+    'workspace_modal.create': '创建',
+    'workspace_modal.title_edit': '编辑工作区',
+    'workspace_modal.save': '保存',
+    'doc_modal.title_plan': '加载计划',
+    'doc_modal.title_convention': '加载约定',
+
+    'onboarding.title': '新手引导：先跑通最小闭环',
+    'onboarding.subtitle': '按 3 步走通：设置 token → 新建 workspace → Start/Step',
+    'onboarding.step1': 'Step 1：设置 ADMIN_TOKEN（右上角）',
+    'onboarding.step2': 'Step 2：点击“新增”创建 workspace（rootPath / planPath）',
+    'onboarding.step3': 'Step 3：Load plan 后 Start/Step（或打开 Codex 用户窗口发送一条消息）',
+    'onboarding.ask_note': '提示：Codex 用户窗口 = 用户直接对话窗口（provider 直聊）',
+    'onboarding.dismiss': '不再提示',
 
     'role.manager': '主管',
     'role.executor': '执行者',
@@ -332,7 +364,9 @@ const I18N = {
     'dash.kv.plan': '计划',
     'dash.kv.convention': '约定',
     'dash.load_plan': '加载计划',
+    'dash.load_convention': '加载约定',
     'dash.load_digest': '加载仓库摘要（repoDigest）',
+    'dash.edit_workspace': '编辑工作区',
     'dash.sessions': '会话',
     'dash.create_default_sessions': '创建默认会话',
     'dash.selected_manager_session': '已选主管会话（属性）',
@@ -420,14 +454,16 @@ const I18N = {
     'sessions.edit_session_select_title': '会话',
     'sessions.edit_provider_title': '提供方（provider）',
     'sessions.edit_provider_keep': 'provider（保持不变）',
+    'sessions.edit_sandbox_title': '权限',
+    'sessions.edit_sandbox_keep': '权限（保持不变）',
     'sessions.edit_mode_title': '模式（mode）',
     'sessions.edit_mode_keep': 'mode（保持不变）',
     'sessions.edit_model_placeholder': 'model（保持/留空）',
     'sessions.edit_effort_title': '推理强度（effort）',
     'sessions.effort_keep': 'effort（默认/清空）',
 
-    'ask.title': '随口问',
-    'ask.hint': '注：Ask 绑定当前工作区，并使用 resume 续聊；写接口需要 ADMIN_TOKEN。',
+    'ask.title': 'Codex 用户窗口',
+    'ask.hint': '注：Codex 用户窗口绑定当前工作区，并使用 resume 续聊；写接口需要 ADMIN_TOKEN。',
     'ask.threads_title': '对话',
     'ask.thread_search_placeholder': '搜索…',
     'ask.new_thread': '新建',
@@ -438,8 +474,15 @@ const I18N = {
     'ask.stop': '终止',
     'ask.send_hint': '快捷键：Ctrl+Enter 发送。',
     'ask.status_idle': '就绪',
-    'ask.status_sending': '恢复中',
-    'ask.send_sending': '恢复中…',
+    'ask.status_sending': '回复中',
+    'ask.status_recovering': '恢复中',
+    'ask.status_failed': '失败',
+    'ask.send_sending': '发送中…',
+    'ask.elapsed_label': '耗时',
+    'ask.elapsed_pending': '等待回复完成',
+    'ask.elapsed_unavailable': '耗时不可用（刷新/未记录）',
+    'ask.usage_label': '用量',
+    'ask.usage_unavailable': '用量不可用（provider 未提供 usage）',
     'ask.queue_title': '队列',
     'ask.queue_empty': '(队列为空)',
     'ask.queue_status_queued': 'queued',
@@ -494,8 +537,13 @@ const I18N = {
     'settings.ws_convention_placeholder': 'conventionPath（可选，绝对路径或相对 rootPath）',
     'settings.add_workspace_btn': '添加工作区',
     'settings.workspace_hint': '注：写接口必须带 ADMIN_TOKEN；workspace root 必须在 ALLOWED_WORKSPACE_ROOTS 白名单内。',
+    'settings.onboarding_title': '新手引导',
+    'settings.onboarding_reset': '重置新手引导',
+    'settings.onboarding_hint': '清除“不再提示”，下次无 workspace 时会重新显示引导。',
 
     'common.refresh': '刷新',
+    'common.cancel': '取消',
+    'common.close': '关闭',
 
     'placeholder.no_data': '(无数据)',
     'placeholder.not_loaded': '(未加载)',
@@ -592,8 +640,8 @@ const I18N = {
     'top.workspace_select_title': 'Workspace',
     'top.add_workspace_title': 'Add workspace',
     'top.add': 'Add',
-    'top.ask': 'Ask',
-    'top.ask_title': 'Open Ask (new window)',
+    'top.ask': 'User Window',
+    'top.ask_title': 'Open User Window (new window)',
     'top.admin_token_label': 'ADMIN_TOKEN',
     'top.admin_token_placeholder': 'required for write ops',
     'top.lang_toggle': '中文',
@@ -602,9 +650,34 @@ const I18N = {
     'nav.dashboard': 'Dashboard',
     'nav.history': 'History',
     'nav.sessions': 'Sessions',
-    'nav.ask': 'Ask',
+    'nav.ask': 'User Window',
     'nav.files': 'Files',
     'nav.settings': 'Settings',
+
+    'workspace_modal.title': 'Create workspace',
+    'workspace_modal.name_label': 'Name (optional)',
+    'workspace_modal.name_placeholder': 'name (optional)',
+    'workspace_modal.root_label': 'rootPath (required)',
+    'workspace_modal.root_placeholder': 'rootPath (absolute)',
+    'workspace_modal.plan_label': 'planPath (default plan.md)',
+    'workspace_modal.plan_placeholder': 'plan.md',
+    'workspace_modal.convention_label': 'conventionPath (default 约定.md)',
+    'workspace_modal.convention_placeholder': '约定.md',
+    'workspace_modal.allowed_title': 'Allowed rootPath list (from /api/health)',
+    'workspace_modal.allowed_hint': 'rootPath must be within the allowed list or you will get PATH_NOT_ALLOWED.',
+    'workspace_modal.create': 'Create',
+    'workspace_modal.title_edit': 'Edit workspace',
+    'workspace_modal.save': 'Save',
+    'doc_modal.title_plan': 'Load plan',
+    'doc_modal.title_convention': 'Load convention',
+
+    'onboarding.title': 'Getting started: finish the minimal loop',
+    'onboarding.subtitle': '3 steps: set token → create workspace → Start/Step',
+    'onboarding.step1': 'Step 1: set ADMIN_TOKEN (top-right)',
+    'onboarding.step2': 'Step 2: click Add to create a workspace (rootPath / planPath)',
+    'onboarding.step3': 'Step 3: Load plan then Start/Step (or open Codex User Window and send a message)',
+    'onboarding.ask_note': 'Note: User Window = direct provider chat.',
+    'onboarding.dismiss': "Don't show again",
 
     'role.manager': 'Manager',
     'role.executor': 'Executor',
@@ -621,7 +694,9 @@ const I18N = {
     'dash.kv.plan': 'Plan',
     'dash.kv.convention': 'Convention',
     'dash.load_plan': 'Load plan',
+    'dash.load_convention': 'Load convention',
     'dash.load_digest': 'Load repoDigest',
+    'dash.edit_workspace': 'Edit workspace',
     'dash.sessions': 'Sessions',
     'dash.create_default_sessions': 'Create default sessions',
     'dash.selected_manager_session': 'Selected manager session (details)',
@@ -709,14 +784,16 @@ const I18N = {
     'sessions.edit_session_select_title': 'session',
     'sessions.edit_provider_title': 'provider',
     'sessions.edit_provider_keep': 'provider (keep)',
+    'sessions.edit_sandbox_title': 'sandbox',
+    'sessions.edit_sandbox_keep': 'sandbox (keep)',
     'sessions.edit_mode_title': 'mode',
     'sessions.edit_mode_keep': 'mode (keep)',
     'sessions.edit_model_placeholder': 'model (keep/empty)',
     'sessions.edit_effort_title': 'reasoning effort',
     'sessions.effort_keep': 'effort (default/clear)',
 
-    'ask.title': 'Ask',
-    'ask.hint': 'Note: Ask is bound to the current workspace and uses resume; write APIs require ADMIN_TOKEN.',
+    'ask.title': 'User Window',
+    'ask.hint': 'Note: User Window is bound to the current workspace and uses resume; write APIs require ADMIN_TOKEN.',
     'ask.threads_title': 'Threads',
     'ask.thread_search_placeholder': 'search...',
     'ask.new_thread': 'New',
@@ -727,8 +804,15 @@ const I18N = {
     'ask.stop': 'Stop',
     'ask.send_hint': 'Shortcut: Ctrl+Enter to send.',
     'ask.status_idle': 'Idle',
-    'ask.status_sending': 'Recovering',
-    'ask.send_sending': 'Recovering…',
+    'ask.status_sending': 'Replying',
+    'ask.status_recovering': 'Recovering',
+    'ask.status_failed': 'Failed',
+    'ask.send_sending': 'Sending…',
+    'ask.elapsed_label': 'Elapsed',
+    'ask.elapsed_pending': 'Waiting for reply to finish',
+    'ask.elapsed_unavailable': 'Elapsed unavailable (no start/end in this session)',
+    'ask.usage_label': 'Usage',
+    'ask.usage_unavailable': 'Usage unavailable (provider did not return usage)',
     'ask.queue_title': 'Queue',
     'ask.queue_empty': '(empty)',
     'ask.queue_status_queued': 'queued',
@@ -783,8 +867,13 @@ const I18N = {
     'settings.ws_convention_placeholder': 'conventionPath (optional, absolute or relative to rootPath)',
     'settings.add_workspace_btn': 'Add workspace',
     'settings.workspace_hint': 'Note: write APIs require ADMIN_TOKEN; workspace root must be within ALLOWED_WORKSPACE_ROOTS.',
+    'settings.onboarding_title': 'Onboarding',
+    'settings.onboarding_reset': 'Reset onboarding',
+    'settings.onboarding_hint': 'Clears the hide flag so the empty-workspace guide shows again.',
 
     'common.refresh': 'Refresh',
+    'common.cancel': 'Cancel',
+    'common.close': 'Close',
 
     'placeholder.no_data': '(no data)',
     'placeholder.not_loaded': '(not loaded)',
@@ -994,10 +1083,22 @@ const state = {
   askThreadsCollapsed: false,
   askConfigCollapsed: false,
   askRenderMarkdown: false,
+  askLastSendThreadId: null,
+  askLastSendStartedAt: null,
+  askLastSendEndedAt: null,
+  askLastSendElapsedMs: null,
   askSse: null,
   askSseKey: null,
   askSseRefreshTimer: null,
   askDebugText: '',
+  workspaceModalMode: 'create',
+  workspaceModalWorkspaceId: null,
+  workspaceDocModalKind: 'plan',
+  workspaceDocModalPath: '',
+  workspaceDocModalText: '',
+  workspaceDocModalTruncated: false,
+  workspaceDocModalLoaded: false,
+  workspaceDocRenderMarkdown: true,
 };
 
 function normalizePage(value) {
@@ -1041,6 +1142,7 @@ function setPage(page) {
   qa('.nav__btn').forEach((btn) => {
     btn.classList.toggle('nav__btn--active', btn.dataset.page === p);
   });
+  renderOnboarding();
   if (p === 'ask' && state.workspaceId) {
     loadAskThreads(state.workspaceId).catch(toast);
   }
@@ -1263,9 +1365,32 @@ function renderWorkspaceHeader() {
   q('#wsConvention').textContent = ws?.conventionPath || '-';
 }
 
+function isOnboardingHidden() {
+  return getStoredBool(ONBOARDING_HIDE_KEY, false);
+}
+
+function setOnboardingHidden(hidden) {
+  setStoredBool(ONBOARDING_HIDE_KEY, Boolean(hidden));
+}
+
+function shouldShowOnboarding() {
+  return state.page === 'dashboard' && state.workspaces.length === 0 && !isOnboardingHidden();
+}
+
+function renderOnboarding() {
+  const card = mustGetEl('#onboardingEmptyWorkspace');
+  const show = shouldShowOnboarding();
+  card.classList.toggle('hidden', !show);
+
+  const tokenInput = mustGetEl('#adminToken');
+  const addWorkspaceBtn = mustGetEl('#addWorkspaceBtn');
+  [tokenInput, addWorkspaceBtn].forEach((el) => el.classList.toggle('onboarding-highlight', show));
+}
+
 function renderWorkspacesSelect() {
   const select = q('#workspaceSelect');
   select.innerHTML = '';
+  const editBtn = mustGetEl('#editWorkspaceBtn');
 
   if (!state.workspaces.length) {
     const opt = document.createElement('option');
@@ -1276,6 +1401,9 @@ function renderWorkspacesSelect() {
     renderWorkspaceHeader();
     setStoredWorkspaceId(null);
     syncWorkspaceIdToUrl(null);
+    editBtn.disabled = true;
+    editBtn.setAttribute('aria-disabled', 'true');
+    renderOnboarding();
     return;
   }
 
@@ -1291,6 +1419,9 @@ function renderWorkspacesSelect() {
   renderWorkspaceHeader();
   setStoredWorkspaceId(state.workspaceId);
   syncWorkspaceIdToUrl(state.workspaceId);
+  editBtn.disabled = false;
+  editBtn.setAttribute('aria-disabled', 'false');
+  renderOnboarding();
 }
 
 function renderSessions() {
@@ -1834,6 +1965,241 @@ function renderAskLayout() {
   }
 }
 
+function reportAskRenderError(err, context) {
+  const msg = `ASK_RENDER_ERROR · ${context} · ${err?.message || err}`;
+  state.askDebugText = msg;
+  try {
+    toast(msg);
+  } catch {}
+  const debug = q('#askDebug');
+  if (debug) debug.textContent = msg;
+}
+
+function preserveAskInputSelection(fn) {
+  const input = q('#askInput');
+  const isActive = input && document.activeElement === input;
+  const start = isActive ? input.selectionStart : null;
+  const end = isActive ? input.selectionEnd : null;
+  fn();
+  if (!isActive || !input) return;
+  try {
+    if (document.activeElement !== input) input.focus({ preventScroll: true });
+    if (Number.isFinite(start) && Number.isFinite(end)) input.setSelectionRange(start, end);
+  } catch {}
+}
+
+function getAskStatusInfo(thread, { isSelected = false } = {}) {
+  const statuses = {
+    idle: { label: t('ask.status_idle'), className: 'pill--status-idle' },
+    sending: { label: t('ask.status_sending'), className: 'pill--status-sending' },
+    recovering: { label: t('ask.status_recovering'), className: 'pill--status-recovering' },
+    failed: { label: t('ask.status_failed'), className: 'pill--status-failed' },
+  };
+
+  if (!thread) return { key: 'idle', ...statuses.idle };
+
+  const busy = Boolean(thread.busy);
+  const sending = Boolean(isSelected && state.askSendInFlight);
+  const recovering = Boolean(isSelected && state.askRecovering);
+  const hasError = Boolean(isSelected && state.askDebugText);
+
+  let key = 'idle';
+  if (hasError && !sending && !recovering && !busy) key = 'failed';
+  else if (recovering) key = 'recovering';
+  else if (sending || busy) key = 'sending';
+
+  const info = statuses[key];
+  if (!info) throw new Error(`ASK_STATUS_UNKNOWN: ${key}`);
+  return { key, ...info };
+}
+
+function formatElapsedMs(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function getAskElapsedInfo(thread) {
+  const label = t('ask.elapsed_label');
+  if (!thread || state.askLastSendThreadId !== thread.id || !state.askLastSendStartedAt) {
+    return { text: `${label} —`, title: t('ask.elapsed_unavailable') };
+  }
+  if (!state.askLastSendEndedAt) {
+    return { text: `${label} —`, title: t('ask.elapsed_pending') };
+  }
+  const ms =
+    state.askLastSendElapsedMs ??
+    (state.askLastSendStartedAt && state.askLastSendEndedAt
+      ? state.askLastSendEndedAt - state.askLastSendStartedAt
+      : null);
+  const formatted = formatElapsedMs(ms);
+  if (!formatted) return { text: `${label} —`, title: t('ask.elapsed_unavailable') };
+  const title = `${formatTs(state.askLastSendStartedAt)} → ${formatTs(state.askLastSendEndedAt)}`;
+  return { text: `${label} ${formatted}`, title };
+}
+
+function readAskUsageFromMeta(meta) {
+  if (!meta) return null;
+  const usage = meta.usage || {};
+  const prompt =
+    usage.prompt ??
+    usage.prompt_tokens ??
+    meta.prompt_tokens ??
+    usage.input_tokens ??
+    meta.input_tokens ??
+    meta.promptTokens ??
+    null;
+  const completion =
+    usage.completion ??
+    usage.completion_tokens ??
+    meta.completion_tokens ??
+    usage.output_tokens ??
+    meta.output_tokens ??
+    meta.completionTokens ??
+    null;
+  let total =
+    usage.total ??
+    usage.total_tokens ??
+    meta.total_tokens ??
+    meta.totalTokens ??
+    null;
+  const hasPrompt = Number.isFinite(Number(prompt));
+  const hasCompletion = Number.isFinite(Number(completion));
+  const hasTotal = Number.isFinite(Number(total));
+  if (!hasTotal && hasPrompt && hasCompletion) total = Number(prompt) + Number(completion);
+
+  if (!hasPrompt && !hasCompletion && !Number.isFinite(Number(total))) return null;
+  return {
+    prompt: hasPrompt ? Number(prompt) : null,
+    completion: hasCompletion ? Number(completion) : null,
+    total: Number.isFinite(Number(total)) ? Number(total) : null,
+  };
+}
+
+function getAskUsageInfo(thread) {
+  const label = t('ask.usage_label');
+  if (!thread) return { text: `${label} —`, title: t('ask.usage_unavailable') };
+  const msgs = state.askMessages || [];
+  const lastAssistant = [...msgs].reverse().find((m) => {
+    if (String(m?.threadId || '') !== String(thread.id || '')) return false;
+    return String(m?.role || '').toLowerCase() === 'assistant';
+  });
+  const usage = readAskUsageFromMeta(lastAssistant?.meta);
+  if (!usage) return { text: `${label} —`, title: t('ask.usage_unavailable') };
+
+  const parts = [];
+  if (Number.isFinite(Number(usage.prompt))) parts.push(`P:${usage.prompt}`);
+  if (Number.isFinite(Number(usage.completion))) parts.push(`C:${usage.completion}`);
+  if (Number.isFinite(Number(usage.total))) parts.push(`T:${usage.total}`);
+
+  const detail = parts.join(' ');
+  return { text: `${label} ${detail}`, title: detail || t('ask.usage_unavailable') };
+}
+
+function renderAskStatusPill(thread) {
+  const pill = q('#askStatusPill');
+  if (!pill) return;
+  let info = null;
+  try {
+    info = getAskStatusInfo(thread, { isSelected: Boolean(thread && thread.id === state.askThreadId) });
+  } catch (err) {
+    reportAskRenderError(err, `renderAskStatusPill · threadId=${thread?.id || '-'}`);
+    throw err;
+  }
+  pill.textContent = info.label;
+  pill.classList.remove('pill--status-idle', 'pill--status-sending', 'pill--status-recovering', 'pill--status-failed');
+  pill.classList.add('pill--status', info.className);
+}
+
+function renderAskStatusMeta(thread) {
+  const elapsedEl = q('#askElapsed');
+  const usageEl = q('#askUsage');
+  if (elapsedEl) {
+    const elapsed = getAskElapsedInfo(thread);
+    elapsedEl.textContent = elapsed.text;
+    elapsedEl.title = elapsed.title || '';
+  }
+  if (usageEl) {
+    const usage = getAskUsageInfo(thread);
+    usageEl.textContent = usage.text;
+    usageEl.title = usage.title || '';
+  }
+}
+
+function renderAskDebugText() {
+  const debug = q('#askDebug');
+  if (!debug) return;
+  debug.textContent = state.askDebugText ? state.askDebugText : t('placeholder.none');
+}
+
+function updateAskElapsedFromMessages(threadId, items) {
+  if (!state.askLastSendStartedAt) return;
+  if (state.askLastSendThreadId !== threadId) return;
+  if (state.askLastSendEndedAt) return;
+
+  const startedAt = Number(state.askLastSendStartedAt);
+  if (!Number.isFinite(startedAt)) return;
+  const match = (items || []).find((m) => {
+    if (!m) return false;
+    const role = String(m.role || '').toLowerCase();
+    if (role !== 'assistant') return false;
+    const createdAt = Number(m.createdAt || 0);
+    return Number.isFinite(createdAt) && createdAt >= startedAt;
+  });
+  if (!match) return;
+  const endedAt = Number(match.createdAt || 0);
+  if (!Number.isFinite(endedAt)) return;
+  state.askLastSendEndedAt = endedAt;
+  state.askLastSendElapsedMs = endedAt - startedAt;
+}
+
+function finalizeAskElapsedNow() {
+  if (!state.askLastSendStartedAt || state.askLastSendEndedAt) return;
+  const endedAt = Date.now();
+  state.askLastSendEndedAt = endedAt;
+  state.askLastSendElapsedMs = endedAt - Number(state.askLastSendStartedAt);
+}
+
+function renderAskRuntimeControls(thread) {
+  const sendBtn = mustGetEl('#askSendBtn');
+  const stopBtn = mustGetEl('#askStopBtn');
+
+  renderAskStatusPill(thread);
+  renderAskStatusMeta(thread);
+  renderAskDebugText();
+
+  if (!thread) {
+    sendBtn.disabled = true;
+    sendBtn.textContent = t('ask.send');
+    stopBtn.disabled = true;
+    stopBtn.textContent = t('ask.stop');
+    return;
+  }
+
+  sendBtn.disabled = Boolean(state.askSendInFlight);
+  sendBtn.textContent = state.askSendInFlight ? t('ask.send_sending') : t('ask.send');
+  stopBtn.disabled = !Boolean(thread.busy);
+  stopBtn.textContent = t('ask.stop');
+}
+
+function renderAskPanelOnly(context) {
+  const ctx = String(context || 'ASK_PANEL_ONLY');
+  try {
+    mustGetEl('#askMessages');
+    mustGetEl('#askQueue');
+    mustGetEl('#askStatusPill');
+    mustGetEl('#askSendBtn');
+    mustGetEl('#askStopBtn');
+  } catch (err) {
+    reportAskRenderError(err, ctx);
+    throw err;
+  }
+  preserveAskInputSelection(() => {
+    renderAskMessages();
+    renderAskQueue();
+    renderAskRuntimeControls(selectedAskThread());
+  });
+}
+
 function renderAskThreads() {
   renderAskLayout();
 
@@ -1868,7 +2234,8 @@ function renderAskThreads() {
     .map((th) => {
       const selected = th.id === state.askThreadId;
       const title = escapeHtml(th.title || '(untitled)');
-      const status = th.busy ? t('ask.status_sending') : t('ask.status_idle');
+      const statusInfo = getAskStatusInfo(th, { isSelected: selected });
+      const status = statusInfo.label;
       const meta = [
         `status=${escapeHtml(status)}`,
         `provider=${escapeHtml(th.provider || '-')}`,
@@ -2120,9 +2487,9 @@ function renderAskThread() {
   if (!thread) {
     header.textContent = t('placeholder.none');
     if (pill) {
-      pill.textContent = t('ask.status_idle');
-      pill.classList.remove('pill--running');
+      renderAskStatusPill(null);
     }
+    renderAskStatusMeta(null);
     if (sendBtn) {
       sendBtn.disabled = true;
       sendBtn.textContent = t('ask.send');
@@ -2187,11 +2554,8 @@ function renderAskThread() {
     refreshModelPresetSelect(modelPreset, modelInput, thread.provider);
   }
 
-  if (pill) {
-    const busy = Boolean(state.askSendInFlight || state.askRecovering || thread.busy);
-    pill.textContent = busy ? t('ask.status_sending') : t('ask.status_idle');
-    pill.classList.toggle('pill--running', busy);
-  }
+  renderAskStatusPill(thread);
+  renderAskStatusMeta(thread);
 
   if (sendBtn) {
     sendBtn.disabled = Boolean(state.askSendInFlight);
@@ -2522,24 +2886,61 @@ async function loadHistoryRunDetail(runId) {
   renderHistoryDetail();
 }
 
-async function loadPlan(workspaceId) {
-  const data = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/plan`);
-  state.mdKind = 'plan';
-  state.mdLoadedPath = data.planPath || '';
+function normalizeWorkspaceDocKind(kind) {
+  const k = String(kind || '').trim().toLowerCase();
+  return k === 'convention' ? 'convention' : 'plan';
+}
+
+function getWorkspaceDocEndpoint(kind) {
+  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'convention' : 'plan';
+}
+
+function getWorkspaceDocPathKey(kind) {
+  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'conventionPath' : 'planPath';
+}
+
+function getWorkspaceDocTitleKey(kind) {
+  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'doc_modal.title_convention' : 'doc_modal.title_plan';
+}
+
+function formatWorkspaceDocKey(key) {
+  return String(key || '')
+    .replace(/([A-Z])/g, '_$1')
+    .toUpperCase();
+}
+
+async function fetchWorkspaceDoc(workspaceId, kind) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_ID_REQUIRED');
+  const k = normalizeWorkspaceDocKind(kind);
+  const endpoint = getWorkspaceDocEndpoint(k);
+  const data = await fetchJson(`/api/workspaces/${encodeURIComponent(wsId)}/${endpoint}`);
+  return {
+    kind: k,
+    path: k === 'convention' ? data.conventionPath : data.planPath,
+    truncated: Boolean(data.truncated),
+    text: data.content || '',
+  };
+}
+
+async function loadWorkspaceDocToTab(kind, workspaceId) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_NOT_SELECTED');
+  const data = await fetchWorkspaceDoc(wsId, kind);
+  state.mdKind = data.kind;
+  state.mdLoadedPath = data.path || '';
   state.mdTruncated = Boolean(data.truncated);
-  state.planText = data.content || '';
+  state.planText = data.text || '';
   renderMdControls();
   renderPlanText();
 }
 
+async function loadPlan(workspaceId) {
+  return loadWorkspaceDocToTab('plan', workspaceId);
+}
+
 async function loadConvention(workspaceId) {
-  const data = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/convention`);
-  state.mdKind = 'convention';
-  state.mdLoadedPath = data.conventionPath || '';
-  state.mdTruncated = Boolean(data.truncated);
-  state.planText = data.content || '';
-  renderMdControls();
-  renderPlanText();
+  return loadWorkspaceDocToTab('convention', workspaceId);
 }
 
 async function loadMarkdownPath(workspaceId, relPath) {
@@ -2773,9 +3174,11 @@ async function reloadFilesSelectedFromUi() {
   }
 }
 
-async function loadAskThreads(workspaceId) {
+async function loadAskThreads(workspaceId, options = {}) {
   const token = getAdminToken();
   if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const renderMode = options?.renderMode === 'list' ? 'list' : 'full';
+  const context = String(options?.context || 'ASK_THREADS');
   const data = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/ask/threads`, {
     headers: { ...authHeaders() },
   });
@@ -2812,10 +3215,12 @@ async function loadAskThreads(workspaceId) {
   }
   if (threadsChanged || selectionChanged) {
     renderAskThreads();
-    renderAskThread();
-    if (!state.askThreadId) {
-      renderAskMessages();
-      renderAskQueue();
+    if (selectionChanged || renderMode === 'full') {
+      renderAskThread();
+      if (!state.askThreadId) {
+        renderAskMessages();
+        renderAskQueue();
+      }
     }
   }
 
@@ -2826,7 +3231,8 @@ async function loadAskThreads(workspaceId) {
     if (state.askPollTimer) return false;
     return Boolean(th.busy) || hasPendingAskQueue(state.askQueueItems);
   })();
-  if (shouldEnsureRecovery) maybeStartAskRecovery();
+  if (shouldEnsureRecovery) maybeStartAskRecovery({ context, renderMode });
+  return { threadsChanged, selectionChanged };
 }
 
 async function loadAskMessages(threadId) {
@@ -2841,6 +3247,8 @@ async function loadAskMessages(threadId) {
   state.askMessages = items;
   state.askMessagesSig = sig;
   renderAskMessages();
+  updateAskElapsedFromMessages(threadId, items);
+  if (state.askThreadId === threadId) renderAskStatusMeta(selectedAskThread());
 }
 
 async function loadAskQueue(threadId) {
@@ -2875,11 +3283,22 @@ async function refreshAskFromRealtimeEvent() {
   if (!state.workspaceId) return;
   if (!getAdminToken()) return;
 
-  await loadAskThreads(state.workspaceId);
+  const { selectionChanged } = await loadAskThreads(state.workspaceId, { renderMode: 'list', context: 'ASK_SSE_REFRESH' });
   if (state.askThreadId) {
-    await loadAskMessages(state.askThreadId).catch(() => {});
-    await loadAskQueue(state.askThreadId).catch(() => {});
+    try {
+      await loadAskMessages(state.askThreadId);
+    } catch (err) {
+      reportAskRenderError(err, 'ASK_SSE_REFRESH loadAskMessages');
+      throw err;
+    }
+    try {
+      await loadAskQueue(state.askThreadId);
+    } catch (err) {
+      reportAskRenderError(err, 'ASK_SSE_REFRESH loadAskQueue');
+      throw err;
+    }
   }
+  if (!selectionChanged) renderAskPanelOnly('ASK_SSE_REFRESH');
 }
 
 function scheduleAskSseRefresh() {
@@ -2958,7 +3377,8 @@ function hasPendingAskQueue(items) {
   });
 }
 
-function maybeStartAskRecovery() {
+function maybeStartAskRecovery(options = {}) {
+  const context = String(options?.context || 'ASK_RECOVERY');
   const thread = selectedAskThread();
   if (!thread) {
     clearAskPoll();
@@ -2968,18 +3388,19 @@ function maybeStartAskRecovery() {
   }
   if (!thread.busy && !hasPendingAskQueue(state.askQueueItems)) {
     clearAskPoll();
-    renderAskThread();
+    renderAskPanelOnly(`${context} | idle`);
     return;
   }
-  startAskRecoveryPoll(thread.id);
+  startAskRecoveryPoll(thread.id, { context });
 }
 
-function startAskRecoveryPoll(threadId) {
+function startAskRecoveryPoll(threadId, options = {}) {
   if (!threadId) return;
   clearAskPoll();
   const pollToken = state.askPollToken;
+  const context = String(options?.context || 'ASK_RECOVERY');
   state.askRecovering = true;
-  renderAskThread();
+  renderAskPanelOnly(`${context} | start`);
 
   const startedAt = Date.now();
   const maxMs = 60 * 60 * 1000;
@@ -3003,11 +3424,11 @@ function startAskRecoveryPoll(threadId) {
       if (status === 401 || status === 403 || String(err?.message || '') === 'ADMIN_TOKEN_REQUIRED') {
         state.askRecovering = false;
         clearAskPoll();
-        renderAskThread();
+        renderAskPanelOnly(`${context} | auth`);
         return;
       }
       state.askDebugText = err?.body ? JSON.stringify(err.body, null, 2) : String(err?.message || err);
-      renderAskThread();
+      renderAskPanelOnly(`${context} | error`);
     }
 
     if (state.askPollToken !== pollToken) return;
@@ -3016,14 +3437,14 @@ function startAskRecoveryPoll(threadId) {
       state.askRecovering = false;
       clearAskPoll();
       renderAskThreads();
-      renderAskThread();
+      renderAskPanelOnly(`${context} | done`);
       return;
     }
 
     if (Date.now() - startedAt > maxMs) {
       state.askRecovering = false;
       clearAskPoll();
-      renderAskThread();
+      renderAskPanelOnly(`${context} | timeout`);
       return;
     }
 
@@ -3062,23 +3483,349 @@ function renderDigestText() {
   q('#digestText').textContent = state.digestText ? state.digestText : t('placeholder.not_loaded');
 }
 
-async function createWorkspaceFromSettings() {
-  const name = q('#wsAddName').value.trim();
-  const rootPath = q('#wsAddRoot').value.trim();
-  const planPath = q('#wsAddPlan').value.trim();
-  const conventionPath = q('#wsAddConvention').value.trim();
-  if (!name || !rootPath) throw new Error('NAME_REQUIRED');
+const WORKSPACE_MODAL_DEFAULT_PLAN = 'plan.md';
+const WORKSPACE_MODAL_DEFAULT_CONVENTION = '约定.md';
 
-  await fetchJson('/api/workspaces', {
+function guessWorkspaceNameFromRoot(rootPath) {
+  const trimmed = String(rootPath || '').trim().replace(/[\\/]+$/, '');
+  if (!trimmed) return '';
+  const parts = trimmed.split(/[\\/]/).filter(Boolean);
+  return parts[parts.length - 1] || '';
+}
+
+function buildWorkspacePayload(
+  { name, rootPath, planPath, conventionPath },
+  { allowNameGuess = true, includeEmptyPaths = false } = {}
+) {
+  const root = String(rootPath || '').trim();
+  if (!root) throw new Error('ROOT_PATH_REQUIRED');
+
+  let finalName = String(name || '').trim();
+  if (!finalName && allowNameGuess) finalName = guessWorkspaceNameFromRoot(root);
+  if (!finalName) throw new Error('NAME_REQUIRED');
+
+  const payload = { name: finalName, rootPath: root };
+  const plan = String(planPath || '').trim();
+  const convention = String(conventionPath || '').trim();
+  if (includeEmptyPaths || plan) payload.planPath = plan;
+  if (includeEmptyPaths || convention) payload.conventionPath = convention;
+  return payload;
+}
+
+function formatApiError(err, context) {
+  const status = err?.status;
+  const code = err?.body?.error;
+  const message = err?.body?.message || err?.message;
+  const parts = [];
+  if (context) parts.push(context);
+  if (status) parts.push(`HTTP ${status}`);
+  if (code) parts.push(String(code));
+  if (message && message !== code) parts.push(String(message));
+  return parts.length ? parts.join(' · ') : 'UNKNOWN_ERROR';
+}
+
+function createWorkspace(payload) {
+  const body = buildWorkspacePayload(payload, { allowNameGuess: true, includeEmptyPaths: true });
+  return fetchJson('/api/workspaces', {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({
-      name,
-      rootPath,
-      planPath: planPath || undefined,
-      conventionPath: conventionPath || undefined,
-    }),
+    body: JSON.stringify(body),
   });
+}
+
+function patchWorkspace(workspaceId, payload) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_ID_REQUIRED');
+  const body = buildWorkspacePayload(payload, { allowNameGuess: false, includeEmptyPaths: true });
+  return fetchJson(`/api/workspaces/${encodeURIComponent(wsId)}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+}
+
+function setWorkspaceModalError(message) {
+  const box = mustGetEl('#workspaceModalError');
+  if (!message) {
+    box.textContent = '';
+    box.classList.add('hidden');
+    return;
+  }
+  box.textContent = message;
+  box.classList.remove('hidden');
+}
+
+function setWorkspaceModalAllowedError(message) {
+  const box = mustGetEl('#workspaceModalAllowedError');
+  if (!message) {
+    box.textContent = '';
+    box.classList.add('hidden');
+    return;
+  }
+  box.textContent = message;
+  box.classList.remove('hidden');
+}
+
+function renderWorkspaceModalAllowedRoots(roots) {
+  const host = mustGetEl('#workspaceModalAllowedRoots');
+  const list = Array.isArray(roots) ? roots.map((r) => String(r || '')).filter(Boolean) : [];
+  host.textContent = list.length ? list.join('\n') : t('placeholder.none');
+}
+
+function requireWorkspaceValue(workspace, key) {
+  const value = String(workspace?.[key] ?? '').trim();
+  if (!value) throw new Error(`WORKSPACE_${String(key).toUpperCase()}_REQUIRED`);
+  return value;
+}
+
+async function loadWorkspaceModalHealth() {
+  const host = mustGetEl('#workspaceModalAllowedRoots');
+  host.textContent = t('placeholder.loading');
+  setWorkspaceModalAllowedError('');
+  try {
+    const data = await fetchJson('/api/health');
+    state.health = data;
+    renderHealth();
+    renderWorkspaceModalAllowedRoots(data.allowedWorkspaceRoots);
+  } catch (err) {
+    renderWorkspaceModalAllowedRoots([]);
+    setWorkspaceModalAllowedError(formatApiError(err, 'GET /api/health'));
+  }
+}
+
+function setWorkspaceModalMode(mode) {
+  const next = mode === 'edit' ? 'edit' : 'create';
+  state.workspaceModalMode = next;
+  const title = mustGetEl('#workspaceModalTitle');
+  const submitBtn = mustGetEl('#workspaceModalCreateBtn');
+  if (next === 'edit') {
+    title.dataset.i18n = 'workspace_modal.title_edit';
+    submitBtn.dataset.i18n = 'workspace_modal.save';
+  } else {
+    title.dataset.i18n = 'workspace_modal.title';
+    submitBtn.dataset.i18n = 'workspace_modal.create';
+  }
+  applyDomI18n();
+}
+
+function openWorkspaceModalBase() {
+  const modal = mustGetEl('#workspaceModal');
+  setWorkspaceModalError('');
+  setWorkspaceModalAllowedError('');
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  loadWorkspaceModalHealth().catch((err) => setWorkspaceModalAllowedError(formatApiError(err, 'GET /api/health')));
+}
+
+function openCreateWorkspaceModal() {
+  state.workspaceModalWorkspaceId = null;
+  setWorkspaceModalMode('create');
+  mustGetEl('#workspaceModalName').value = '';
+  mustGetEl('#workspaceModalRoot').value = '';
+  mustGetEl('#workspaceModalPlan').value = WORKSPACE_MODAL_DEFAULT_PLAN;
+  mustGetEl('#workspaceModalConvention').value = WORKSPACE_MODAL_DEFAULT_CONVENTION;
+  openWorkspaceModalBase();
+}
+
+function openEditWorkspaceModal(workspace) {
+  const ws = workspace || selectedWorkspace();
+  if (!ws) throw new Error('WORKSPACE_NOT_SELECTED');
+  state.workspaceModalWorkspaceId = requireWorkspaceValue(ws, 'id');
+  setWorkspaceModalMode('edit');
+  mustGetEl('#workspaceModalName').value = requireWorkspaceValue(ws, 'name');
+  mustGetEl('#workspaceModalRoot').value = requireWorkspaceValue(ws, 'rootPath');
+  mustGetEl('#workspaceModalPlan').value = requireWorkspaceValue(ws, 'planPath');
+  mustGetEl('#workspaceModalConvention').value = requireWorkspaceValue(ws, 'conventionPath');
+  openWorkspaceModalBase();
+}
+
+function closeWorkspaceModal() {
+  const modal = mustGetEl('#workspaceModal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+async function submitWorkspaceModal() {
+  setWorkspaceModalError('');
+  const token = getAdminToken();
+  if (!token) {
+    setWorkspaceModalError(t('toast.ADMIN_TOKEN_REQUIRED'));
+    return;
+  }
+
+  const payload = {
+    name: mustGetEl('#workspaceModalName').value,
+    rootPath: mustGetEl('#workspaceModalRoot').value,
+    planPath: mustGetEl('#workspaceModalPlan').value,
+    conventionPath: mustGetEl('#workspaceModalConvention').value,
+  };
+  const mode = state.workspaceModalMode === 'edit' ? 'edit' : 'create';
+
+  try {
+    if (mode === 'edit') {
+      const workspaceId = String(state.workspaceModalWorkspaceId || '').trim();
+      if (!workspaceId) throw new Error('WORKSPACE_ID_REQUIRED');
+      const updated = await patchWorkspace(workspaceId, payload);
+      closeWorkspaceModal();
+      state.workspaceId = updated.id;
+      await loadWorkspaces();
+      await onWorkspaceChanged();
+      return;
+    }
+
+    const created = await createWorkspace(payload);
+    closeWorkspaceModal();
+    state.workspaceId = created.id;
+    await loadWorkspaces();
+    await onWorkspaceChanged();
+  } catch (err) {
+    const ctx =
+      mode === 'edit'
+        ? `PATCH /api/workspaces/${state.workspaceModalWorkspaceId || ''}`
+        : 'POST /api/workspaces';
+    setWorkspaceModalError(formatApiError(err, ctx));
+  }
+}
+
+function setWorkspaceDocModalError(message) {
+  const box = mustGetEl('#workspaceDocModalError');
+  if (!message) {
+    box.textContent = '';
+    box.classList.add('hidden');
+    return;
+  }
+  box.textContent = message;
+  box.classList.remove('hidden');
+}
+
+function setWorkspaceDocModalTitle(kind) {
+  const title = mustGetEl('#workspaceDocModalTitle');
+  title.dataset.i18n = getWorkspaceDocTitleKey(kind);
+  applyDomI18n();
+}
+
+function renderWorkspaceDocModalInfo() {
+  const info = mustGetEl('#workspaceDocModalInfo');
+  if (!state.workspaceDocModalLoaded) {
+    info.textContent = t('placeholder.not_loaded');
+    return;
+  }
+  if (!state.workspaceDocModalPath) {
+    info.textContent = t('placeholder.not_loaded');
+    return;
+  }
+  info.textContent = state.workspaceDocModalTruncated
+    ? `${state.workspaceDocModalPath} ${t('md.truncated')}`
+    : state.workspaceDocModalPath;
+}
+
+function renderWorkspaceDocModalBody() {
+  const body = mustGetEl('#workspaceDocModalBody');
+  const rawText = String(state.workspaceDocModalText || '');
+  if (!rawText) {
+    body.classList.remove('md');
+    body.textContent = state.workspaceDocModalLoaded ? '' : t('placeholder.not_loaded');
+    return;
+  }
+  if (state.workspaceDocRenderMarkdown) {
+    body.classList.add('md');
+    body.innerHTML = renderMarkdownSafe(rawText) || '';
+    return;
+  }
+  body.classList.remove('md');
+  body.textContent = rawText;
+}
+
+function renderWorkspaceDocModal() {
+  renderWorkspaceDocModalInfo();
+  renderWorkspaceDocModalBody();
+}
+
+async function loadWorkspaceDocForModal(kind) {
+  const k = normalizeWorkspaceDocKind(kind);
+  const wsId = String(state.workspaceId || '').trim();
+
+  state.workspaceDocModalKind = k;
+  state.workspaceDocModalLoaded = false;
+  state.workspaceDocModalText = '';
+  state.workspaceDocModalPath = '';
+  state.workspaceDocModalTruncated = false;
+  setWorkspaceDocModalError('');
+  renderWorkspaceDocModal();
+
+  if (!wsId) {
+    setWorkspaceDocModalError('WORKSPACE_NOT_SELECTED');
+    renderWorkspaceDocModal();
+    return;
+  }
+  const ws = selectedWorkspace();
+  if (!ws) {
+    setWorkspaceDocModalError(`WORKSPACE_NOT_FOUND · workspaceId=${wsId}`);
+    renderWorkspaceDocModal();
+    return;
+  }
+
+  const pathKey = getWorkspaceDocPathKey(k);
+  const configuredPath = String(ws[pathKey] || '').trim();
+  if (k === 'convention' && !configuredPath) {
+    const code = `${formatWorkspaceDocKey(pathKey)}_REQUIRED`;
+    setWorkspaceDocModalError(`${code} · workspaceId=${wsId} · kind=convention · edit workspace to set ${pathKey}`);
+    renderWorkspaceDocModal();
+    return;
+  }
+
+  try {
+    const data = await fetchWorkspaceDoc(wsId, k);
+    state.workspaceDocModalKind = data.kind;
+    state.workspaceDocModalPath = data.path || configuredPath || '';
+    state.workspaceDocModalTruncated = Boolean(data.truncated);
+    state.workspaceDocModalText = data.text || '';
+    state.workspaceDocModalLoaded = true;
+    renderWorkspaceDocModal();
+  } catch (err) {
+    const endpoint = getWorkspaceDocEndpoint(k);
+    const ctx = `GET /api/workspaces/${wsId}/${endpoint} · workspaceId=${wsId} · kind=${k} · path=${configuredPath}`;
+    setWorkspaceDocModalError(formatApiError(err, ctx));
+    state.workspaceDocModalPath = configuredPath || '';
+    renderWorkspaceDocModal();
+  }
+}
+
+async function openWorkspaceDocModal(kind) {
+  const modal = mustGetEl('#workspaceDocModal');
+  const k = normalizeWorkspaceDocKind(kind);
+  state.workspaceDocModalKind = k;
+  state.workspaceDocModalLoaded = false;
+  state.workspaceDocModalText = '';
+  state.workspaceDocModalPath = '';
+  state.workspaceDocModalTruncated = false;
+  setWorkspaceDocModalError('');
+  setWorkspaceDocModalTitle(k);
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  const toggle = mustGetEl('#workspaceDocRenderToggle');
+  toggle.checked = Boolean(state.workspaceDocRenderMarkdown);
+  renderWorkspaceDocModal();
+  await loadWorkspaceDocForModal(k);
+}
+
+function closeWorkspaceDocModal() {
+  const modal = mustGetEl('#workspaceDocModal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+async function createWorkspaceFromSettings() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+
+  const created = await createWorkspace({
+    name: mustGetEl('#wsAddName').value,
+    rootPath: mustGetEl('#wsAddRoot').value,
+    planPath: mustGetEl('#wsAddPlan').value,
+    conventionPath: mustGetEl('#wsAddConvention').value,
+  });
+  state.workspaceId = created.id;
   await loadWorkspaces();
   await onWorkspaceChanged();
   setPage('dashboard');
@@ -3093,6 +3840,10 @@ function openAskWindow() {
 async function selectAskThreadById(threadId) {
   state.askThreadId = threadId;
   state.askDebugText = '';
+  state.askLastSendThreadId = threadId;
+  state.askLastSendStartedAt = null;
+  state.askLastSendEndedAt = null;
+  state.askLastSendElapsedMs = null;
   state.askForceScrollToBottom = true;
   state.askQueueItems = [];
   state.askQueueSig = null;
@@ -3184,7 +3935,12 @@ async function sendAskFromUi() {
 
   q('#askInput').value = '';
 
+  state.askDebugText = '';
   state.askSendInFlight = true;
+  state.askLastSendThreadId = thread.id;
+  state.askLastSendStartedAt = Date.now();
+  state.askLastSendEndedAt = null;
+  state.askLastSendElapsedMs = null;
   renderAskThread();
 
   let resp = null;
@@ -3198,10 +3954,12 @@ async function sendAskFromUi() {
     const status = err?.status;
     if (status === 401 || status === 403 || String(err?.message || '') === 'ADMIN_TOKEN_REQUIRED') {
       state.askSendInFlight = false;
+      finalizeAskElapsedNow();
       renderAskThread();
       throw err;
     }
     state.askSendInFlight = false;
+    finalizeAskElapsedNow();
     state.askDebugText = err?.body ? JSON.stringify(err.body, null, 2) : String(err?.message || err);
     renderAskThread();
     startAskRecoveryPoll(thread.id);
@@ -3416,6 +4174,7 @@ function fillEditSessionForm(sessionId) {
   if (!s) return;
   const cfg = readConfigJson(s.configJson);
   q('#editSessionProvider').value = s.provider || '';
+  q('#editSessionSandbox').value = cfg.sandbox || '';
   q('#editSessionMode').value = cfg.mode || '';
   q('#editSessionModel').value = cfg.model || '';
   q('#editSessionEffort').value = cfg.model_reasoning_effort || '';
@@ -3430,11 +4189,13 @@ async function saveEditedSession() {
   if (!current) throw new Error('SESSION_NOT_FOUND');
 
   const provider = q('#editSessionProvider').value || current.provider;
+  const sandbox = q('#editSessionSandbox').value;
   const mode = q('#editSessionMode').value;
   const model = q('#editSessionModel').value.trim();
   const effort = q('#editSessionEffort').value;
 
   const cfg = readConfigJson(current.configJson);
+  if (sandbox) cfg.sandbox = sandbox;
   if (mode) cfg.mode = mode;
   else delete cfg.mode;
   if (model) cfg.model = model;
@@ -3729,6 +4490,20 @@ function initTokenBox() {
   });
 }
 
+function initOnboarding() {
+  const dismissBtn = mustGetEl('#onboardingDismissBtn');
+  dismissBtn.addEventListener('click', () => {
+    setOnboardingHidden(true);
+    renderOnboarding();
+  });
+
+  const resetBtn = mustGetEl('#resetOnboardingBtn');
+  resetBtn.addEventListener('click', () => {
+    setOnboardingHidden(false);
+    renderOnboarding();
+  });
+}
+
 function initNav() {
   qa('.nav__btn').forEach((btn) => {
     btn.addEventListener('click', () => setPage(btn.dataset.page));
@@ -3841,13 +4616,48 @@ function initHandlers() {
   window.addEventListener('focus', refreshAskIfVisible);
   window.addEventListener('online', refreshAskIfVisible);
 
-  q('#addWorkspaceBtn').addEventListener('click', () => setPage('settings'));
+  q('#addWorkspaceBtn').addEventListener('click', () => {
+    try {
+      openCreateWorkspaceModal();
+    } catch (err) {
+      toast(err);
+    }
+  });
+  mustGetEl('#editWorkspaceBtn').addEventListener('click', () => {
+    try {
+      openEditWorkspaceModal();
+    } catch (err) {
+      toast(err);
+    }
+  });
   q('#openAskBtn').addEventListener('click', () => {
     try {
       openAskWindow();
     } catch (err) {
       toast(err);
     }
+  });
+
+  const modal = mustGetEl('#workspaceModal');
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeWorkspaceModal();
+  });
+  mustGetEl('#workspaceModalCloseBtn').addEventListener('click', () => closeWorkspaceModal());
+  mustGetEl('#workspaceModalCancelBtn').addEventListener('click', () => closeWorkspaceModal());
+  mustGetEl('#workspaceModalCreateBtn').addEventListener('click', () => {
+    submitWorkspaceModal().catch((err) => setWorkspaceModalError(formatApiError(err, 'WORKSPACE_MODAL_SUBMIT')));
+  });
+
+  const docModal = mustGetEl('#workspaceDocModal');
+  docModal.addEventListener('click', (e) => {
+    if (e.target === docModal) closeWorkspaceDocModal();
+  });
+  mustGetEl('#workspaceDocModalCloseBtn').addEventListener('click', () => closeWorkspaceDocModal());
+  const docRenderToggle = mustGetEl('#workspaceDocRenderToggle');
+  docRenderToggle.checked = Boolean(state.workspaceDocRenderMarkdown);
+  docRenderToggle.addEventListener('change', (e) => {
+    state.workspaceDocRenderMarkdown = Boolean(e.target.checked);
+    renderWorkspaceDocModalBody();
   });
 
   q('#managerSessionSelect').addEventListener('change', (e) => {
@@ -4017,7 +4827,8 @@ function initHandlers() {
   q('#rolloverManagerBtn').addEventListener('click', () => rolloverRunSession('manager').catch(toast));
   q('#rolloverExecutorBtn').addEventListener('click', () => rolloverRunSession('executor').catch(toast));
 
-  q('#loadPlanBtn').addEventListener('click', () => loadPlan(state.workspaceId).catch(toast));
+  q('#loadPlanBtn').addEventListener('click', () => openWorkspaceDocModal('plan').catch(toast));
+  q('#loadConventionBtn').addEventListener('click', () => openWorkspaceDocModal('convention').catch(toast));
   q('#loadDigestBtn').addEventListener('click', () => loadDigest(state.workspaceId).catch(toast));
 
   q('#mdKindSelect').addEventListener('change', (e) => {
@@ -4132,6 +4943,7 @@ async function init() {
   loadHistoryLayoutPrefs();
   initI18n();
   initTokenBox();
+  initOnboarding();
   initNav();
   initTabs();
   initHandlers();

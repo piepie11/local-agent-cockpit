@@ -55,6 +55,7 @@ async function runFakeExec({
   const delayMsRaw = Number(providerConfig?.delayMs);
   const delayMs = Number.isFinite(delayMsRaw) ? delayMsRaw : 10;
   const dangerousExecLog = Boolean(providerConfig?.dangerousExecLog);
+  const loopManagerPacket = Boolean(providerConfig?.loopManagerPacket);
   const wantResume = String(providerConfig?.mode || '').toLowerCase() === 'stateful_resume';
   const resumeId = providerConfig?.resume ? String(providerConfig.resume) : null;
   const usedResume = wantResume && Boolean(resumeId);
@@ -93,6 +94,18 @@ RISKS:
 QUESTIONS:
 - None
 </EXEC_LOG>`;
+  } else if (loopManagerPacket && p.includes('\nLAST_MANAGER_PACKET:\n')) {
+    const turnIdx = (String(p).match(/\nTURN_IDX:\s*([0-9]+)\s*\n/) || [])[1] || '?';
+    lastMessage = `<MANAGER_PACKET>
+GOAL: Loop test turn ${turnIdx}
+DIAGNOSIS: Fake provider loop manager packet (for NO_PROGRESS testing).
+INSTRUCTIONS:
+1) Output one well-formed <EXEC_LOG> with CHANGES/COMMANDS set to None.
+ACCEPTANCE:
+- Executor output contains <EXEC_LOG> and </EXEC_LOG>
+SCOPE_GUARD:
+- Do not run commands or change files
+</MANAGER_PACKET>`;
   } else if (
     p.includes('\nLAST_EXEC_LOG:\nNone\n\nHUMAN_INJECT:\n') ||
     p.includes('\r\nLAST_EXEC_LOG:\r\nNone\r\n\r\nHUMAN_INJECT:\r\n')

@@ -1,15 +1,14 @@
 {
-  "name": "local-agent-cockpit",
+  "name": "auto_codex",
   "version": "0.0.1",
-  "description": "Mobile-friendly local Web control plane for orchestrating CLI agents (Manager <-> Executor)",
+  "description": "Web orchestrator for Manager <-> Executor with Codex/Claude CLI",
   "private": true,
   "type": "commonjs",
-  "license": "MIT",
   "scripts": {
     "up": "node scripts/up.js",
     "dev": "node src/server.js",
     "start": "node src/server.js",
-    "test": "npm run m2:api:e2e && npm run m4:ask:e2e && npm run m5:files:e2e && npm run m6:notify:e2e && npm run m7:ask:sse:e2e",
+    "test": "node test/src/index.js",
     "m0:smoke": "node scripts/codex_smoke.js",
     "m0:roundtrip": "node scripts/m0_roundtrip.js",
     "m1:e2e:fake": "node scripts/m1_e2e_fake.js",

@@ -680,6 +680,59 @@ async function main() {
     assert(pausedDirty.status === 'PAUSED', `expected PAUSED for dirty run, got ${pausedDirty.status}`);
     assert(pausedDirty.error === 'GIT_DIRTY', `expected GIT_DIRTY, got ${pausedDirty.error}`);
 
+    // noProgressLimit: when manager keeps looping and executor reports no changes, should auto-pause
+    const mgrLoop = await fetchJsonExpect(
+      baseUrl,
+      '/api/sessions',
+      {
+        method: 'POST',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({
+          workspaceId: ws2.body.id,
+          role: 'manager',
+          provider: 'fake',
+          config: { sandbox: 'read-only', delayMs: 10, loopManagerPacket: true },
+        }),
+      },
+      201
+    );
+    const exLoop = await fetchJsonExpect(
+      baseUrl,
+      '/api/sessions',
+      {
+        method: 'POST',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({ workspaceId: ws2.body.id, role: 'executor', provider: 'fake', config: { sandbox: 'read-only', delayMs: 10 } }),
+      },
+      201
+    );
+
+    const runLoop = await fetchJsonExpect(
+      baseUrl,
+      '/api/runs',
+      {
+        method: 'POST',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({
+          workspaceId: ws2.body.id,
+          managerSessionId: mgrLoop.body.id,
+          executorSessionId: exLoop.body.id,
+          options: { maxTurns: 20, repoDigestEnabled: false, requireGitClean: false, noProgressLimit: 1 },
+        }),
+      },
+      201
+    );
+    await fetchJsonExpect(
+      baseUrl,
+      `/api/runs/${runLoop.body.id}/start`,
+      { method: 'POST', headers: jsonHeaders(token), body: '{}' },
+      200
+    );
+    const pausedNoProgress = await pollRun(baseUrl, runLoop.body.id, 20_000);
+    assert(pausedNoProgress.status === 'PAUSED', `expected PAUSED for no-progress run, got ${pausedNoProgress.status}`);
+    assert(pausedNoProgress.error === 'NO_PROGRESS', `expected NO_PROGRESS, got ${pausedNoProgress.error}`);
+    assert(pausedNoProgress.turnIndex >= 2, `expected turnIndex>=2, got ${pausedNoProgress.turnIndex}`);
+
     console.log(`[m2_api_e2e] PASS baseUrl=${baseUrl} outDir=${outDir}`);
   } finally {
     try {

@@ -31,7 +31,7 @@ function normalizeInt(value) {
 
 function usage() {
   const lines = [
-    'local-agent-cockpit one-click launcher',
+    'auto_codex one-click launcher',
     '',
     'Usage:',
     '  node scripts/up.js [--host 0.0.0.0] [--port 18787] [--allowed-roots "C:\\\\projects;D:\\\\repo"] [--no-token-file]',

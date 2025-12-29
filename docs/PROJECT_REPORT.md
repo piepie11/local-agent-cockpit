@@ -1,6 +1,6 @@
-# local-agent-cockpit 项目全景报告（可脱离代码理解）
+﻿# auto_codex 项目全景报告（可脱离代码理解）
 
-> 目标读者：第一次接手 `local-agent-cockpit`、需要在不看任何其它文档的情况下理解它是什么、怎么跑、架构怎么走、以及该去哪里改代码的人。  
+> 目标读者：第一次接手 `auto_codex`、需要在不看任何其它文档的情况下理解它是什么、怎么跑、架构怎么走、以及该去哪里改代码的人。  
 > 语言：中文（仓库默认）。  
 > 注意：本项目的本质是“通过 Web 远程控制本机 Agent/CLI 执行代码”，务必阅读本文的 **安全与权限模型**。
 
@@ -8,7 +8,7 @@
 
 ## 1. 这是什么项目（一句话 + 两句话）
 
-**一句话**：`local-agent-cockpit` 是一个“手机可用”的本地 Web 控制台，用来编排 **Manager ↔ Executor** 的回合制协作（底层调用本机的 **Codex CLI** / **Claude Code CLI** / Fake provider），并把全过程做成可回放、可导出、可审计的运行记录。
+**一句话**：`auto_codex` 是一个“手机可用”的本地 Web 控制台，用来编排 **Manager ↔ Executor** 的回合制协作（底层调用本机的 **Codex CLI** / **Claude Code CLI** / Fake provider），并把全过程做成可回放、可导出、可审计的运行记录。
 
 **两句话**：
 - 你在浏览器里选 workspace（目标代码仓库目录）+ 计划文件（`plan.md`）+ 两个会话（manager/executor），然后一键 Start/Step/Pause/Stop/Inject。
@@ -45,8 +45,8 @@ Turn 是 Run 内的一个轮次：通常是 “Manager 产出指令包 → Execu
 ### 2.5 Event（事件，SSE + 可回放）
 事件是 UI 实时刷新的基础：后端把每条事件写入 SQLite（`events` 表），前端通过 SSE（`/api/runs/:id/events`）订阅并展示。
 
-### 2.6 Ask（随口问）
-Ask 是一个“轻量对话子系统”：它不是 Manager/Executor 编排，而是单线程的问答对话（支持续聊和终止），用于用户在读代码/日志时随口问问题。
+### 2.6 Ask（Codex 用户窗口）
+Ask 是一个“轻量对话子系统”：它不是 Manager/Executor 编排，而是单线程的问答对话（支持续聊和终止），用于用户在读代码/日志时Codex 用户窗口问题。
 
 ---
 
@@ -79,7 +79,7 @@ Ask 是一个“轻量对话子系统”：它不是 Manager/Executor 编排，�
 5. 观察 Dashboard 的事件流、输出、repoDigest；必要时 Inject（手动插话纠偏）
 6. 最终 Manager 输出 `Done` → run 自动结束；去 History 回放并 Export 导出
 
-### 3.3 用 Ask（随口问）
+### 3.3 用 Ask（Codex 用户窗口）
 1. 打开 Ask 页，新建线程（选 provider + sandbox + 可选 model/effort）
 2. 发送问题：首条消息会 seed 并拿到 providerSessionId；后续消息走 resume（续聊）
 3. 如果卡住/想中止：点“终止”，后端会 abort 当前线程并落一条 abort 的 assistant 消息
@@ -89,7 +89,7 @@ Ask 是一个“轻量对话子系统”：它不是 Manager/Executor 编排，�
 
 ## 4. 输出契约（为什么 Manager/Executor 能被“编排”）
 
-这是项目能稳定自动化的核心：**不靠“猜”，靠输出协议**（见 `prompts/manager_system.md`、`prompts/executor_system.md`，以及 workspace 约定文件：默认 `<workspace>/约定.md`，可参考 `docs/templates/workspace_约定.md`）。
+这是项目能稳定自动化的核心：**不靠“猜”，靠输出协议**（见 `prompts/manager_system.md`、`prompts/executor_system.md`、`约定.md`）。
 
 ### 4.1 Manager 输出必须二选一
 - 未完成：输出 `<MANAGER_PACKET>...</MANAGER_PACKET>`（只允许一个包，不能额外闲聊）
@@ -144,7 +144,7 @@ Executor 每轮都输出一个 `<EXEC_LOG>...</EXEC_LOG>`，里面包含：
    - 写入 turns/events 表，SSE 推送到前端
 4. 达到终止条件：Done / Stop / Pause / Error / Guard 触发
 
-### 5.3 关键数据流：Ask（随口问）
+### 5.3 关键数据流：Ask（Codex 用户窗口）
 1. UI 发起 send：先落 user message 到 DB，然后异步跑 provider
 2. 首条消息（seed）：带 system prompt，要求 provider 返回 providerSessionId
 3. 后续消息（resume-only）：不重复 system prompt（靠 resume）
@@ -187,7 +187,7 @@ Executor 每轮都输出一个 `<EXEC_LOG>...</EXEC_LOG>`，里面包含：
 - `settings`：全局设置（如 capabilities 快照）
 - `session_rollovers`：会话换血记录（from→to + summaryPath）
 - `artifacts`：导出/落盘产物索引（export-md/json/jsonl 等）
-- `ask_threads` / `ask_messages`：随口问线程与消息
+- `ask_threads` / `ask_messages`：Codex 用户窗口线程与消息
 
 ### 7.2 runs/：可审计落盘
 典型路径（见 `src/config.js`）：
@@ -246,7 +246,7 @@ Executor 每轮都输出一个 `<EXEC_LOG>...</EXEC_LOG>`，里面包含：
 - `POST /api/runs/:id/inject`（admin）：向 manager/executor 注入人类消息
 - `GET /api/runs/:id/export?format=md|json|jsonl`（admin）：导出并落盘（同时写 artifacts 记录）
 
-### 8.5 Ask（随口问）
+### 8.5 Ask（Codex 用户窗口）
 - `GET /api/workspaces/:id/ask/threads`（admin）：列出 ask threads（workspace 内）
 - `POST /api/workspaces/:id/ask/threads`（admin）：创建 ask thread
 - `GET /api/ask/threads/:id`（admin）：获取 thread（含 busy 状态）
@@ -353,7 +353,7 @@ Run 的 `optionsJson` 支持（常用）：
 - Dashboard：workspace + sessions + run 控制 + Tabs（Manager/Executor/Events/Plan/Digest）
 - History：按 run/turn 回放 prompt/output/meta，并支持搜索过滤
 - Sessions：创建/编辑 session（provider/mode/model/sandbox/systemPromptPath…）
-- Ask：随口问线程列表 + 对话窗口 + 配置
+- Ask：Codex 用户窗口线程列表 + 对话窗口 + 配置
 - Settings：health、capabilities 探测、添加 workspace
 
 ### 11.5 UI 细节优化（已做）
@@ -390,17 +390,19 @@ Run 的 `optionsJson` 支持（常用）：
 > 说明：这里列的是“仓库中有意义的内容”；`node_modules/`、`runs/`、`data/` 这类要么依赖安装产物要么运行产物，不逐文件展开。
 
 ```
-local-agent-cockpit/
+auto_codex/
   src/            # 后端核心：API/Orchestrator/Providers/Storage
   web/            # 前端（原生 JS/CSS，移动端优先）
   prompts/        # system prompt（Manager/Executor/Ask）+ e2e 测试 prompt
   scripts/        # 一键启动 + e2e/回归脚本
-  docs/           # 文档 + 模板
-  examples/       # 示例 workspace（开箱即用演示）
-  .env.example    # 环境变量示例（安全占位符）
+  docs/           # 留痕与模板（notes/archive/templates）
+  data/           # SQLite + token/capabilities（运行产物，gitignored）
+  runs/           # 每次运行/导出/日志（运行产物，gitignored）
+  test/           # 迷你 demo workspace（已被 .gitignore 忽略，但历史上被纳入版本）
+  plan.md         # 项目大计划（路线图/里程碑）
+  约定.md         # 项目工程公约（强制流程）
+  思路.md         # 历史草稿（可能过时）
   README.md       # 快速开始与安全提示
-  SECURITY.md     # 安全说明（务必阅读）
-  LICENSE         # 开源协议
 ```
 
 ---
@@ -411,28 +413,78 @@ local-agent-cockpit/
 > “实现”部分以**代码入口/核心函数/主要副作用**的形式描述，便于你直接跳转阅读。
 
 ### 14.1 根目录
-- `.gitignore`：忽略 `runs/`、`data/`、`node_modules/`、`.env*` 等运行/依赖/机密产物
-- `.env.example`：环境变量示例（安全占位符）
+- `.gitignore`：忽略 `runs/`、`data/`、`node_modules/`、`test/` 等运行/依赖产物
 - `README.md`：快速开始、环境变量、基本 UI 流程、测试命令清单
-- `SECURITY.md`：安全与部署注意事项（强烈建议先读）
-- `LICENSE`：开源协议
-- `CONTRIBUTING.md`：贡献指南
-- `CODE_OF_CONDUCT.md`：行为准则
-- `package.json`：Node 运行与脚本入口（`npm run dev/up/test` 等）
+- `plan.md`：整体路线图/对象模型/里程碑与验收口径（面向“要做什么”）
+- `约定.md`：工程公约（面向“怎么做/怎么验收/怎么留痕/怎么提交”）
+- `思路.md`：早期思考草稿（可当背景阅读，但以 `plan.md` 为准）
+- `package.json`：Node 运行与脚本入口（`npm run dev/up/m0..m4`）
 - `package-lock.json`：依赖锁定（当前主要依赖 express）
 - `up.cmd` / `up.ps1` / `up.sh`：跨平台入口脚本（调用 `scripts/up.js`）
 
 ### 14.2 docs/
-- `docs/README.md`：文档索引
-- `docs/PROJECT_REPORT.md`：全景报告（架构/数据/文件级索引）
-- `docs/CONFIGURATION.md`：环境变量与配置说明
-- `docs/DEVELOPMENT.md`：开发与测试指南
-- `docs/templates/workspace_约定.md`：workspace 的默认约定模板（当目标项目缺少约定文件时可回落）
+- `docs/archive/plans/plan_legacy_2025-12-25_0019.md`：历史计划归档（避免根目录堆多份 plan）
+- `docs/templates/workspace_约定.md`：workspace 的默认约定模板（当目标项目缺少约定文件时注入）
+
+#### docs/notes/（留痕：按日期主题）
+> 这些文件的“实现价值”在于：记录为什么这么做、踩了哪些坑、怎么验证。  
+> 快速定位：看文件名最后的 topic（例如 `m2_hardening`、`ui_i18n_toggle`、`ask_ui_sending...`）。
+
+- `docs/notes/2025-12-23_2337_m0_smoke.md`：m0 smoke 的落地记录
+- `docs/notes/2025-12-24_0001_m0_smoke_hardening.md`：smoke 加固/边界条件
+- `docs/notes/2025-12-24_0210_m0_roundtrip.md`：m0 roundtrip 的实现记录
+- `docs/notes/2025-12-24_0225_m1_server_scaffold.md`：server/骨架搭建
+- `docs/notes/2025-12-24_0234_m1_orchestrator_api.md`：orchestrator API 设计
+- `docs/notes/2025-12-24_0240_m1_ui_dashboard.md`：Dashboard UI 初版
+- `docs/notes/2025-12-24_0244_m2_hardening.md`：安全/健壮性加固（auth/allowlist/locks 等）
+- `docs/notes/2025-12-24_0254_m1_e2e_fake_provider.md`：fake provider e2e
+- `docs/notes/2025-12-24_0302_m2_history_guard_docs.md`：History + guard 的记录
+- `docs/notes/2025-12-24_0305_m1_e2e_codex_readonly.md`：codex readonly e2e
+- `docs/notes/2025-12-24_0951_m1_claude_provider.md`：claude provider 接入记录
+- `docs/notes/2025-12-24_2151_test_fake_provider_controls.md`：fake provider 控制项/参数
+- `docs/notes/2025-12-24_2200_m2_deep_test_suite.md`：deep test suite 设计
+- `docs/notes/2025-12-24_2224_up_launcher_port.md`：一键启动端口选择
+- `docs/notes/2025-12-24_2229_root_up_scripts.md`：根目录 up 脚本归位
+- `docs/notes/2025-12-24_2253_node_sqlite_engines.md`：node:sqlite 与 engines 约束
+- `docs/notes/2025-12-24_2256_pause_after_turn.md`：step 模式/回合后暂停
+- `docs/notes/2025-12-24_2303_run_env_recording.md`：run_env.json 记录
+- `docs/notes/2025-12-24_2308_regression_after_alignment.md`：回归/对齐后的修复
+- `docs/notes/2025-12-25_0011_plan_resume_mode_model.md`：resume/mode/model 计划
+- `docs/notes/2025-12-25_0022_plan_archive_promote.md`：plan 归档策略
+- `docs/notes/2025-12-25_0041_plan_engineering_refine.md`：工程化细化
+- `docs/notes/2025-12-25_0100_m3_capabilities_probe.md`：capabilities 探测
+- `docs/notes/2025-12-25_0105_sessions_mode_model_patch_api_ui.md`：sessions 的 mode/model/API/UI
+- `docs/notes/2025-12-25_0125_m1_codex_resume_mode.md`：codex resume 模式
+- `docs/notes/2025-12-25_0137_m2_claude_resume_mixed.md`：claude resume + mixed
+- `docs/notes/2025-12-25_0149_m3_rollover_api_ui.md`：rollover API/UI
+- `docs/notes/2025-12-25_0228_m3_deep_export_meta.md`：导出/元信息
+- `docs/notes/2025-12-25_0240_test_report.md`：测试报告/回归结论
+- `docs/notes/2025-12-25_1043_default_resume_mode.md`：默认 resume 行为
+- `docs/notes/2025-12-25_1054_default_host_0.0.0.0.md`：默认监听 0.0.0.0
+- `docs/notes/2025-12-25_1115_ui_i18n_toggle.md`：UI 中英文切换
+- `docs/notes/2025-12-25_1302_dashboard_session_info.md`：Dashboard 会话信息展示
+- `docs/notes/2025-12-25_1421_dashboard_session_info_pretty.md`：会话信息美化
+- `docs/notes/2025-12-25_2003_default_run_options.md`：默认 run options
+- `docs/notes/2025-12-25_2019_manager_prompt_allow_divergence.md`：允许 manager 临场决断
+- `docs/notes/2025-12-25_2048_workspace_convention_fallback.md`：workspace 约定文件 fallback
+- `docs/notes/2025-12-25_2105_p0_no_silent_fallback_and_reuse.md`：P0 原则：不静默回退/优先复用
+- `docs/notes/2025-12-25_2122_workspace_convention_path.md`：conventionPath 字段
+- `docs/notes/2025-12-25_2232_default_allowed_workspace_roots_parent.md`：allow roots 默认父目录
+- `docs/notes/2025-12-25_2240_ask_backend_resume_only.md`：Ask 后端 resume-only
+- `docs/notes/2025-12-25_2255_ask_ui_new_window.md`：Ask UI 新窗口
+- `docs/notes/2025-12-25_2324_deep_tests_ask_e2e_and_roundtrip_fix.md`：Ask e2e 与 roundtrip 修复
+- `docs/notes/2025-12-25_2339_m3_deep_test_report.md`：m3 deep 回归报告
+- `docs/notes/2025-12-25_mobile_ui_optimization.md`：移动端 UI 优化
+- `docs/notes/2025-12-26_0044_ask_ui_sending_and_mobile_fix.md`：Ask 发送态/移动端修复
+- `docs/notes/2025-12-26_0956_ask_send_async_and_ui_recovery.md`：Ask 异步发送与 UI 恢复
+- `docs/notes/2025-12-26_1014_orchestrator_normalize_manager_output.md`：normalize manager output
+- `docs/notes/2025-12-26_1101_model_effort_support.md`：reasoning effort 支持
+- `docs/notes/2025-12-26_1415_workflow_templates_isolated_incubation.md`：工作流模板孵化（隔离实现）
 
 ### 14.3 prompts/
 - `prompts/manager_system.md`：Manager 的系统提示词（职责、P0 审查点、输出契约）
 - `prompts/executor_system.md`：Executor 的系统提示词（职责、P0 工程原则、EXEC_LOG 契约）
-- `prompts/ask_system.md`：Ask（随口问）模式系统提示词（中文默认、尽量不改代码等）
+- `prompts/ask_system.md`：Ask（Codex 用户窗口）模式系统提示词（中文默认、尽量不改代码等）
 
 #### prompts/tests/
 - `prompts/tests/m1_e2e_codex_manager_system.md`：Codex e2e 的确定性 manager prompt
@@ -459,9 +511,7 @@ local-agent-cockpit/
 - `scripts/m3_e2e_mixed_resume.js`：Mixed provider 的 resume e2e
 - `scripts/m3_rollover_e2e.js`：rollover（换血）API e2e
 - `scripts/m4_ask_e2e.js`：Ask 子系统 e2e（含 stop/abort）
-- `scripts/m5_files_e2e.js`：Files 子系统 e2e（浏览/预览/编辑保存）
-- `scripts/m6_notify_e2e.js`：通知 e2e（本地 mock PushPlus，不会真实推送）
-- `scripts/m7_ask_sse_e2e.js`：Ask SSE e2e（跨设备实时同步验证）
+- `scripts/fix_plan_encoding.js`：修复 plan.md 中历史乱码/引用残留的脚本（一次性工具）
 
 ### 14.5 src/（后端核心）
 - `src/server.js`：Express 服务入口；定义所有 API；静态托管 `web/`；组装 Store/SseHub/Orchestrator/AskService
@@ -505,11 +555,13 @@ local-agent-cockpit/
 - `web/app.js`：前端主逻辑（状态、i18n、API 调用、SSE、渲染与交互）
 - `web/styles.css`：主题与布局（暗/亮色、移动端优化、折叠/预览样式、角色颜色）
 
-### 14.7 examples/（示例 workspace）
-> 这些目录用于“开箱即用”演示：你可以直接把它们注册成 workspace，验证 UI 与核心链路。
+### 14.7 test/（最小 demo workspace）
+> 该目录用于在本仓库里就地验证“注册 workspace → 跑 npm test”的链路；它模拟一个最小 Node 项目。
 
-- `examples/minimal-workspace/plan.md`：示例计划
-- `examples/minimal-workspace/约定.md`：示例 workspace 约定
+- `test/README.md`：说明这是测试 workspace
+- `test/plan.md`：这个 workspace 的计划（创建最小项目并跑通）
+- `test/package.json`：最小脚本（start/test）
+- `test/src/index.js`：打印 `hello auto_codex test`
 
 ---
 
@@ -541,3 +593,4 @@ local-agent-cockpit/
 - **安全**：不要把 `ADMIN_TOKEN` 写进文档/截图/日志；不要用 query 参数传 token。
 - **Windows 进程终止**：Stop/Abort 依赖 `taskkill /T /F`；如果你自定义 provider，要确保可可靠杀进程树。
 - **node:sqlite**：Node 版本不足会直接跑不起来（需要 >= 22）。
+

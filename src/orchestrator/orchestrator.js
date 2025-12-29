@@ -115,7 +115,7 @@ class Orchestrator {
     const baseUrl = String(this.config?.notifications?.baseUrl || '').trim();
 
     const lines = [];
-    lines.push(`**local-agent-cockpit: ${status}**`);
+    lines.push(`**auto_codex: ${status}**`);
     lines.push('');
     lines.push(`- workspace: ${wsName}${wsRoot ? ` (${wsRoot})` : ''}`);
     lines.push(`- runId: ${run?.id || ''}`);
@@ -146,20 +146,21 @@ class Orchestrator {
     const runningCount = Array.from(this.controllers.values()).filter((c) => c.status === 'RUNNING').length;
     if (runningCount >= this.config.maxConcurrentRuns) throw new Error('MAX_CONCURRENT_RUNS_REACHED');
 
-    const controller = {
-      runId,
-      workspaceId: run.workspaceId,
-      status: 'RUNNING',
-      mode,
-      abortController: null,
-      pauseRequested: false,
-      pauseReason: '',
-      injected: { manager: [], executor: [] },
-      eventSeq: this.store.getMaxEventSeq(runId),
-      lastManagerSignature: '',
-      resumeConfirmed: { manager: false, executor: false },
-      noProgressCount: 0,
-    };
+      const controller = {
+        runId,
+        workspaceId: run.workspaceId,
+        status: 'RUNNING',
+        mode,
+        abortController: null,
+        pauseRequested: false,
+        pauseReason: '',
+        injected: { manager: [], executor: [] },
+        eventSeq: this.store.getMaxEventSeq(runId),
+        lastManagerSignature: '',
+        prevManagerSignature: '',
+        resumeConfirmed: { manager: false, executor: false },
+        noProgressCount: 0,
+      };
 
     this.controllers.set(runId, controller);
     this.runningWorkspace.set(run.workspaceId, runId);
@@ -497,7 +498,7 @@ class Orchestrator {
           break;
         }
 
-        controller.lastManagerSignature = managerOutput.replace(/\s+/g, ' ').trim();
+        controller.lastManagerSignature = computeNoProgressSignatureFromManagerOutput(managerOutput);
 
         if (!managerOutput.includes('<MANAGER_PACKET>') || !managerOutput.includes('</MANAGER_PACKET>')) {
           controller.status = 'PAUSED';
@@ -787,6 +788,54 @@ function normalizeManagerOutput(text) {
   if (last === 'Done') return { kind: 'done_line', coerced: raw !== 'Done', text: 'Done' };
 
   return { kind: 'unknown', coerced: false, text: raw };
+}
+
+function computeNoProgressSignatureFromManagerOutput(managerOutput) {
+  const raw = String(managerOutput ?? '').trim();
+  if (!raw) return '';
+  if (raw === 'Done') return 'done';
+
+  const packetMatch = raw.match(/<MANAGER_PACKET>[\s\S]*?<\/MANAGER_PACKET>/);
+  const packet = packetMatch ? packetMatch[0] : raw;
+  const instructions = extractManagerPacketInstructions(packet);
+  return normalizeNoProgressSignatureText(instructions || packet);
+}
+
+function extractManagerPacketInstructions(packet) {
+  const lines = String(packet || '')
+    .replace(/\r/g, '')
+    .split('\n');
+  let start = -1;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (String(lines[i] || '').trim().toUpperCase() === 'INSTRUCTIONS:') {
+      start = i + 1;
+      break;
+    }
+  }
+  if (start < 0) return '';
+
+  const endRe = /^(GOAL|DIAGNOSIS|DECISIONS|ACCEPTANCE|SCOPE_GUARD):\s*$/i;
+  const out = [];
+  for (let i = start; i < lines.length; i += 1) {
+    const line = String(lines[i] || '');
+    if (endRe.test(line.trim())) break;
+    out.push(line);
+  }
+  return out.join('\n').trim();
+}
+
+function normalizeNoProgressSignatureText(text) {
+  const normalized = String(text || '')
+    .replace(/\r/g, '')
+    .replace(/`[^`]*`/g, '`<code>`')
+    .split('\n')
+    .map((line) => String(line || '').trim().replace(/^([-*]|\d+[.)])\s*/g, ''))
+    .filter(Boolean)
+    .join('\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return normalized;
 }
 
 function parseExecLog(text) {

@@ -27,7 +27,7 @@ async function sendPushPlus({ endpoint, token, title, content, template, channel
 
   const payload = {
     token,
-    title: String(title || '').slice(0, 180) || 'local-agent-cockpit',
+    title: String(title || '').slice(0, 180) || 'auto_codex',
     content: String(content || ''),
     template: String(template || 'markdown'),
     channel: String(channel || 'wechat'),

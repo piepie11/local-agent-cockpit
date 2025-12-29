@@ -99,7 +99,7 @@ function createServer() {
   app.get('/api/health', (req, res) => {
     res.json({
       ok: true,
-      name: 'local-agent-cockpit',
+      name: 'auto_codex',
       adminTokenSource: config.adminTokenSource,
       allowedWorkspaceRoots: config.allowedWorkspaceRoots,
       maxConcurrentRuns: config.maxConcurrentRuns,
@@ -909,12 +909,12 @@ if (require.main === module) {
   const { app } = createServer();
   app.listen(config.port, config.host, () => {
     const addr = `http://${config.host}:${config.port}`;
-    console.log(`[local-agent-cockpit] listening on ${addr}`);
+    console.log(`[auto_codex] listening on ${addr}`);
     if (config.host === '0.0.0.0' || config.host === '::') {
-      console.log(`[local-agent-cockpit] local: http://127.0.0.1:${config.port}`);
+      console.log(`[auto_codex] local: http://127.0.0.1:${config.port}`);
     }
-    console.log(`[local-agent-cockpit] allowed roots: ${config.allowedWorkspaceRoots.join(', ')}`);
-    console.log(`[local-agent-cockpit] ADMIN_TOKEN (${config.adminTokenSource}): ${config.adminToken}`);
+    console.log(`[auto_codex] allowed roots: ${config.allowedWorkspaceRoots.join(', ')}`);
+    console.log(`[auto_codex] ADMIN_TOKEN (${config.adminTokenSource}): ${config.adminToken}`);
   });
 }
 

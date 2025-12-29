@@ -186,7 +186,7 @@ function buildAskReplyNotification({ config, context, resultOk, assistantMessage
   const title = `${kind} · ${wsName}${titleThread ? ` · ${titleThread}` : ''}`;
 
   const lines = [];
-  lines.push(`**local-agent-cockpit: ${kind}**`);
+  lines.push(`**auto_codex: ${kind}**`);
   lines.push('');
   lines.push(`- workspace: ${wsName}`);
   lines.push(`- thread: ${threadTitle} (${context.thread?.id || ''})`);
