@@ -592,6 +592,15 @@ const I18N = {
     'files.truncated_no_save': '文件过大已截断：为避免覆盖损坏，已禁用保存。',
 
     'settings.title': '设置',
+    'settings.allowed_roots_title': '允许的 rootPath（白名单）',
+    'settings.allowed_roots_hint':
+      '注：用于限制可注册 workspace 的目录范围；写入需要 ADMIN_TOKEN；修改会持久化到 DB 并立即生效（重启后仍有效）。',
+    'settings.allowed_roots_placeholder': '每行一个绝对路径，例如 E:\\\\sjt\\\\others',
+    'settings.allowed_roots_load': '从 health 填充',
+    'settings.allowed_roots_save': '保存',
+    'settings.allowed_roots_reset': '恢复为环境变量',
+    'settings.allowed_roots_confirm_overwrite': '确认用 health 覆盖编辑框内容？',
+    'settings.allowed_roots_confirm_reset': '确认恢复为环境变量？（将删除 DB 覆盖值）',
     'settings.capabilities_title': '能力探测',
     'settings.probe': '探测',
     'settings.probe_hint': '注：Probe 会执行本机 CLI 探测命令，需要带 ADMIN_TOKEN。',
@@ -922,6 +931,15 @@ const I18N = {
     'files.truncated_no_save': 'File is truncated. Save is disabled to avoid overwriting the file.',
 
     'settings.title': 'Settings',
+    'settings.allowed_roots_title': 'Allowed rootPath (allowlist)',
+    'settings.allowed_roots_hint':
+      'Note: limits where workspaces can be registered; requires ADMIN_TOKEN to write; saved to DB and takes effect immediately (persists after restart).',
+    'settings.allowed_roots_placeholder': 'One absolute path per line, e.g. E:\\\\projects',
+    'settings.allowed_roots_load': 'Fill from health',
+    'settings.allowed_roots_save': 'Save',
+    'settings.allowed_roots_reset': 'Reset to env',
+    'settings.allowed_roots_confirm_overwrite': 'Overwrite the editor with the health value?',
+    'settings.allowed_roots_confirm_reset': 'Reset to env? (This removes the DB override)',
     'settings.capabilities_title': 'Capabilities',
     'settings.probe': 'Probe',
     'settings.probe_hint': 'Note: Probe runs local CLI capability checks and requires ADMIN_TOKEN.',
@@ -2901,10 +2919,53 @@ function openRunStream(runId) {
 async function loadHealth() {
   state.health = await fetchJson('/api/health');
   renderHealth();
+  renderAllowedRootsControlsFromHealth({ autoFill: true });
 }
 
 function renderHealth() {
   q('#health').textContent = state.health ? JSON.stringify(state.health, null, 2) : t('placeholder.loading');
+}
+
+function setAllowedRootsError(message) {
+  const box = q('#allowedRootsError');
+  if (!box) return;
+  if (!message) {
+    box.textContent = '';
+    box.classList.add('hidden');
+    return;
+  }
+  box.textContent = String(message);
+  box.classList.remove('hidden');
+}
+
+function setAllowedRootsStatus(text) {
+  const el = q('#allowedRootsStatus');
+  if (!el) return;
+  el.textContent = String(text || '');
+}
+
+function fillAllowedRootsEditorFromHealth({ overwrite = false } = {}) {
+  const editor = q('#allowedRootsEditor');
+  if (!editor) return;
+  const roots = Array.isArray(state.health?.allowedWorkspaceRoots) ? state.health.allowedWorkspaceRoots : [];
+  const next = roots
+    .map((r) => String(r || '').trim())
+    .filter(Boolean)
+    .join('\n');
+  if (!overwrite && String(editor.value || '').trim()) return;
+  editor.value = next;
+}
+
+function renderAllowedRootsControlsFromHealth({ autoFill = false } = {}) {
+  const roots = Array.isArray(state.health?.allowedWorkspaceRoots) ? state.health.allowedWorkspaceRoots : [];
+  const source = String(state.health?.allowedWorkspaceRootsSource || '').trim() || 'unknown';
+  const updatedAtMs = Number(state.health?.allowedWorkspaceRootsUpdatedAt || 0);
+  const updatedAtText = updatedAtMs ? formatTs(updatedAtMs) : '-';
+  const err = String(state.health?.allowedWorkspaceRootsError || '').trim();
+  setAllowedRootsStatus(`source=${source} · updatedAt=${updatedAtText} · count=${roots.length}`);
+  if (err) setAllowedRootsError(`health.allowedWorkspaceRootsError: ${err}`);
+  else setAllowedRootsError('');
+  if (autoFill) fillAllowedRootsEditorFromHealth({ overwrite: false });
 }
 
 function renderCapabilities() {
@@ -3600,6 +3661,69 @@ function formatApiError(err, context) {
   if (code) parts.push(String(code));
   if (message && message !== code) parts.push(String(message));
   return parts.length ? parts.join(' · ') : 'UNKNOWN_ERROR';
+}
+
+function parseAllowedRootsText(text) {
+  return String(text || '')
+    .split(/[\r\n;,]+/g)
+    .map((s) => String(s || '').trim())
+    .filter(Boolean);
+}
+
+async function saveAllowedRootsFromUi() {
+  const token = getAdminToken();
+  if (!token) {
+    setAllowedRootsError('ADMIN_TOKEN_REQUIRED');
+    throw new Error('ADMIN_TOKEN_REQUIRED');
+  }
+  const editor = mustGetEl('#allowedRootsEditor');
+  const roots = parseAllowedRootsText(editor.value);
+
+  setAllowedRootsError('');
+  try {
+    await fetchJson('/api/settings/allowedWorkspaceRoots', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ roots }),
+    });
+    await loadHealth();
+    renderAllowedRootsControlsFromHealth({ autoFill: false });
+  } catch (err) {
+    setAllowedRootsError(formatApiError(err, 'ALLOWED_ROOTS_SAVE'));
+    throw err;
+  }
+}
+
+function loadAllowedRootsEditorFromHealthFromUi() {
+  const editor = q('#allowedRootsEditor');
+  if (!editor) return;
+  if (String(editor.value || '').trim()) {
+    if (!confirm(t('settings.allowed_roots_confirm_overwrite'))) return;
+  }
+  fillAllowedRootsEditorFromHealth({ overwrite: true });
+  renderAllowedRootsControlsFromHealth({ autoFill: false });
+}
+
+async function resetAllowedRootsFromUi() {
+  const token = getAdminToken();
+  if (!token) {
+    setAllowedRootsError('ADMIN_TOKEN_REQUIRED');
+    throw new Error('ADMIN_TOKEN_REQUIRED');
+  }
+  if (!confirm(t('settings.allowed_roots_confirm_reset'))) return;
+
+  setAllowedRootsError('');
+  try {
+    await fetchJson('/api/settings/allowedWorkspaceRoots', {
+      method: 'DELETE',
+      headers: { ...authHeaders() },
+    });
+    await loadHealth();
+    renderAllowedRootsControlsFromHealth({ autoFill: true });
+  } catch (err) {
+    setAllowedRootsError(formatApiError(err, 'ALLOWED_ROOTS_RESET'));
+    throw err;
+  }
 }
 
 function createWorkspace(payload) {
@@ -4747,6 +4871,9 @@ function initHandlers() {
   });
 
   q('#refreshHealthBtn').addEventListener('click', () => loadHealth().catch(toast));
+  q('#allowedRootsLoadBtn').addEventListener('click', () => loadAllowedRootsEditorFromHealthFromUi());
+  q('#allowedRootsSaveBtn').addEventListener('click', () => saveAllowedRootsFromUi().catch(() => {}));
+  q('#allowedRootsResetBtn').addEventListener('click', () => resetAllowedRootsFromUi().catch(() => {}));
   q('#refreshHistoryBtn').addEventListener('click', () => loadRuns(state.workspaceId).catch(toast));
   q('#refreshSessionsBtn').addEventListener('click', () => loadSessions(state.workspaceId).catch(toast));
   q('#refreshRolloversBtn').addEventListener('click', () => loadRollovers(state.workspaceId).catch(toast));
