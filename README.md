@@ -50,6 +50,8 @@
    - Export：导出 md/json/jsonl
 4) History：查看按轮次展开的 prompt/output，并支持关键词过滤（turns search）
 
+补充：Workspace 下拉列表按“最近使用（MRU）”排序，存储在浏览器 `localStorage`（key=`workspaceMru`）；如需重置可清理站点数据或删除该 key。
+
 ## Provider
 
 - `codex`：真实调用 `codex exec --json --output-last-message`（需要本机已安装并登录 Codex CLI）
@@ -100,6 +102,9 @@ pm run up）
 ## 通知（PushPlus 例子）
 - PushPlus 只是通知中转的一种选择，**非广告/非合作**，欢迎替代方案
 - 配置方式：设置 PUSHPLUS_TOKEN（示例见 .env.example），必要时开启 PUSH_NOTIFICATIONS_ENABLED=true
+- 渠道选择：设置 `PUSHPLUS_CHANNEL`
+  - `wechat`：公众号推送（默认）
+  - `app`：PushPlus App 推送
 - 已知限制：
   - 提醒可能不稳定、延迟或被系统折叠
   - 需要用户近期交互（例如 48 小时窗口）时更容易收到提醒
