@@ -191,6 +191,11 @@ class Store {
     return this.getSetting(k);
   }
 
+  deleteSetting(key) {
+    const info = this.db.prepare(`DELETE FROM settings WHERE key = ?`).run(String(key));
+    return info.changes > 0;
+  }
+
   listRuns(workspaceId) {
     return this.db
       .prepare(

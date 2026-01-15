@@ -235,6 +235,73 @@ async function main() {
     );
     assert(notDir.body.error === 'ROOT_PATH_NOT_DIR', `expected ROOT_PATH_NOT_DIR, got ${notDir.body.error}`);
 
+    // settings: runtime-editable allowedWorkspaceRoots (persisted in DB)
+    const settingsNoAuth = await fetchJsonExpect(
+      baseUrl,
+      '/api/settings/allowedWorkspaceRoots',
+      { method: 'PUT', headers: jsonHeaders(''), body: JSON.stringify({ roots: [allowedRoot] }) },
+      401
+    );
+    assert(settingsNoAuth.body.error === 'UNAUTHORIZED', `expected UNAUTHORIZED, got ${settingsNoAuth.body.error}`);
+
+    const badRoots = await fetchJsonExpect(
+      baseUrl,
+      '/api/settings/allowedWorkspaceRoots',
+      { method: 'PUT', headers: jsonHeaders(token), body: JSON.stringify({ roots: ['relative/path'] }) },
+      400
+    );
+    assert(badRoots.body.error === 'ROOT_PATH_NOT_ABSOLUTE', `expected ROOT_PATH_NOT_ABSOLUTE, got ${badRoots.body.error}`);
+
+    const putRoots = await fetchJsonExpect(
+      baseUrl,
+      '/api/settings/allowedWorkspaceRoots',
+      { method: 'PUT', headers: jsonHeaders(token), body: JSON.stringify({ roots: [allowedRoot, notAllowedRoot] }) },
+      200
+    );
+    assert(putRoots.body.ok === true, 'expected ok=true for put allowed roots');
+
+    const healthAfterPut = await fetchJsonExpect(baseUrl, '/api/health', {}, undefined);
+    assert(healthAfterPut.body.allowedWorkspaceRootsSource === 'db', `expected source=db, got ${healthAfterPut.body.allowedWorkspaceRootsSource}`);
+    assert(
+      Array.isArray(healthAfterPut.body.allowedWorkspaceRoots) && healthAfterPut.body.allowedWorkspaceRoots.some((p) => p === notAllowedRoot),
+      'expected notAllowedRoot present in allowedWorkspaceRoots'
+    );
+
+    const wsNotAllowedNowAllowed = await fetchJsonExpect(
+      baseUrl,
+      '/api/workspaces',
+      {
+        method: 'POST',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({ name: 'ws_now_allowed', rootPath: notAllowedRoot }),
+      },
+      201
+    );
+    assert(wsNotAllowedNowAllowed.body.id, 'workspace id missing for ws_now_allowed');
+
+    const resetRoots = await fetchJsonExpect(
+      baseUrl,
+      '/api/settings/allowedWorkspaceRoots',
+      { method: 'DELETE', headers: jsonHeaders(token) },
+      200
+    );
+    assert(resetRoots.body.ok === true, 'expected ok=true for reset allowed roots');
+
+    const healthAfterReset = await fetchJsonExpect(baseUrl, '/api/health', {}, undefined);
+    assert(healthAfterReset.body.allowedWorkspaceRootsSource === 'env', `expected source=env, got ${healthAfterReset.body.allowedWorkspaceRootsSource}`);
+
+    const stillNotAllowed = await fetchJsonExpect(
+      baseUrl,
+      '/api/workspaces',
+      {
+        method: 'POST',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({ name: 'bad_again', rootPath: notAllowedRoot }),
+      },
+      400
+    );
+    assert(stillNotAllowed.body.error === 'ROOT_PATH_NOT_ALLOWED', `expected ROOT_PATH_NOT_ALLOWED, got ${stillNotAllowed.body.error}`);
+
     // plan endpoint
     const plan = await fetchJsonExpect(baseUrl, `/api/workspaces/${ws1.body.id}/plan`, {}, undefined);
     assert(String(plan.body.content || '').includes('# ws1 plan'), 'plan content mismatch');

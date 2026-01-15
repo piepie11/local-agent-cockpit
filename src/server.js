@@ -76,6 +76,13 @@ function createServer() {
   const notifier = createNotifier({ config });
   const orchestrator = new Orchestrator({ store, sseHub, config, notifier });
 
+  const runtime = {
+    allowedWorkspaceRoots: Array.isArray(config.allowedWorkspaceRoots) ? [...config.allowedWorkspaceRoots] : [],
+    allowedWorkspaceRootsSource: 'env',
+    allowedWorkspaceRootsUpdatedAt: null,
+    allowedWorkspaceRootsError: null,
+  };
+
   const app = express();
   app.use(express.json({ limit: '6mb' }));
 
@@ -83,6 +90,70 @@ function createServer() {
     const token = extractToken(req);
     return Boolean(token && token === config.adminToken);
   }
+
+  function normalizeAllowedWorkspaceRootsValue(value) {
+    const v = value && typeof value === 'object' && !Array.isArray(value) ? value.roots : value;
+    if (!Array.isArray(v)) return null;
+
+    const out = [];
+    for (const item of v) {
+      const raw = String(item ?? '').trim();
+      if (!raw) continue;
+      if (raw.includes('\0')) throw new Error('ROOT_PATH_INVALID');
+      if (!path.isAbsolute(raw)) throw new Error('ROOT_PATH_NOT_ABSOLUTE');
+      const abs = path.resolve(raw);
+      if (fs.existsSync(abs) && !fs.statSync(abs).isDirectory()) throw new Error('ROOT_PATH_NOT_DIR');
+      out.push(abs);
+    }
+
+    const seen = new Set();
+    const unique = [];
+    for (const p of out) {
+      const key = process.platform === 'win32' ? p.toLowerCase() : p;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(p);
+    }
+
+    return unique;
+  }
+
+  function refreshAllowedWorkspaceRootsFromStore() {
+    const row = store.getSetting('allowedWorkspaceRoots');
+    if (!row) {
+      runtime.allowedWorkspaceRoots = Array.isArray(config.allowedWorkspaceRoots) ? [...config.allowedWorkspaceRoots] : [];
+      runtime.allowedWorkspaceRootsSource = 'env';
+      runtime.allowedWorkspaceRootsUpdatedAt = null;
+      runtime.allowedWorkspaceRootsError = null;
+      return;
+    }
+
+    const parsed = safeJsonParse(row.valueJson, null);
+    let normalized = null;
+    try {
+      normalized = normalizeAllowedWorkspaceRootsValue(parsed);
+      runtime.allowedWorkspaceRootsError = null;
+    } catch (err) {
+      runtime.allowedWorkspaceRootsError = String(err?.message || err);
+      normalized = null;
+    }
+    if (!normalized || normalized.length === 0) {
+      runtime.allowedWorkspaceRoots = Array.isArray(config.allowedWorkspaceRoots) ? [...config.allowedWorkspaceRoots] : [];
+      runtime.allowedWorkspaceRootsSource = 'env';
+      runtime.allowedWorkspaceRootsUpdatedAt = null;
+      return;
+    }
+
+    runtime.allowedWorkspaceRoots = normalized;
+    runtime.allowedWorkspaceRootsSource = 'db';
+    runtime.allowedWorkspaceRootsUpdatedAt = row.updatedAt || null;
+  }
+
+  function getAllowedWorkspaceRoots() {
+    return runtime.allowedWorkspaceRoots;
+  }
+
+  refreshAllowedWorkspaceRootsFromStore();
 
   function safeInlineImageContentType(ext) {
     const e = String(ext || '').toLowerCase();
@@ -101,9 +172,56 @@ function createServer() {
       ok: true,
       name: 'auto_codex',
       adminTokenSource: config.adminTokenSource,
-      allowedWorkspaceRoots: config.allowedWorkspaceRoots,
+      allowedWorkspaceRoots: getAllowedWorkspaceRoots(),
+      allowedWorkspaceRootsSource: runtime.allowedWorkspaceRootsSource,
+      allowedWorkspaceRootsUpdatedAt: runtime.allowedWorkspaceRootsUpdatedAt,
+      allowedWorkspaceRootsError: runtime.allowedWorkspaceRootsError,
       maxConcurrentRuns: config.maxConcurrentRuns,
       readOnlyMode: config.readOnlyMode,
+    });
+  });
+
+  app.put('/api/settings/allowedWorkspaceRoots', requireAdmin({ config }), (req, res) => {
+    try {
+      const roots = req.body?.roots;
+      let list = [];
+      if (Array.isArray(roots)) {
+        list = roots;
+      } else if (typeof roots === 'string') {
+        list = roots
+          .split(/[\r\n;,]+/g)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else {
+        return res.status(400).json({ error: 'ROOTS_REQUIRED' });
+      }
+
+      const normalized = normalizeAllowedWorkspaceRootsValue(list);
+      if (!normalized || normalized.length === 0) return res.status(400).json({ error: 'ROOTS_EMPTY' });
+      if (normalized.length > 80) return res.status(400).json({ error: 'ROOTS_TOO_MANY' });
+
+      store.setSetting('allowedWorkspaceRoots', JSON.stringify(normalized));
+      refreshAllowedWorkspaceRootsFromStore();
+      res.json({
+        ok: true,
+        allowedWorkspaceRoots: getAllowedWorkspaceRoots(),
+        allowedWorkspaceRootsSource: runtime.allowedWorkspaceRootsSource,
+        allowedWorkspaceRootsUpdatedAt: runtime.allowedWorkspaceRootsUpdatedAt,
+      });
+    } catch (err) {
+      const code = String(err?.message || 'ROOTS_INVALID');
+      res.status(400).json({ error: code });
+    }
+  });
+
+  app.delete('/api/settings/allowedWorkspaceRoots', requireAdmin({ config }), (req, res) => {
+    store.deleteSetting('allowedWorkspaceRoots');
+    refreshAllowedWorkspaceRootsFromStore();
+    res.json({
+      ok: true,
+      allowedWorkspaceRoots: getAllowedWorkspaceRoots(),
+      allowedWorkspaceRootsSource: runtime.allowedWorkspaceRootsSource,
+      allowedWorkspaceRootsUpdatedAt: runtime.allowedWorkspaceRootsUpdatedAt,
     });
   });
 
@@ -366,7 +484,7 @@ function createServer() {
     if (!rootPath) return res.status(400).json({ error: 'ROOT_PATH_REQUIRED' });
 
     const absRoot = path.resolve(rootPath);
-    if (!isWorkspacePathAllowed(absRoot, config.allowedWorkspaceRoots)) {
+    if (!isWorkspacePathAllowed(absRoot, getAllowedWorkspaceRoots())) {
       return res.status(400).json({ error: 'ROOT_PATH_NOT_ALLOWED' });
     }
     if (!fs.existsSync(absRoot) || !fs.statSync(absRoot).isDirectory()) {
@@ -399,7 +517,7 @@ function createServer() {
     }
 
     if (patch.rootPath) {
-      if (!isWorkspacePathAllowed(patch.rootPath, config.allowedWorkspaceRoots)) {
+      if (!isWorkspacePathAllowed(patch.rootPath, getAllowedWorkspaceRoots())) {
         return res.status(400).json({ error: 'ROOT_PATH_NOT_ALLOWED' });
       }
       if (!fs.existsSync(patch.rootPath) || !fs.statSync(patch.rootPath).isDirectory()) {
