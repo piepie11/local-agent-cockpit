@@ -200,6 +200,8 @@ function downloadBlob(filename, blob) {
 
 const UI_LANG_KEY = 'uiLang';
 const WORKSPACE_ID_KEY = 'workspaceId';
+const WORKSPACE_MRU_KEY = 'workspaceMru';
+const WORKSPACE_MRU_MAX = 40;
 const ASK_THREADS_COLLAPSED_KEY = 'askThreadsCollapsed';
 const ASK_CONFIG_COLLAPSED_KEY = 'askConfigCollapsed';
 const ASK_RENDER_MD_KEY = 'askRenderMd';
@@ -284,6 +286,69 @@ function setStoredWorkspaceId(workspaceId) {
     if (!v) localStorage.removeItem(WORKSPACE_ID_KEY);
     else localStorage.setItem(WORKSPACE_ID_KEY, v);
   } catch {}
+}
+
+function getStoredWorkspaceMruIds() {
+  try {
+    const raw = localStorage.getItem(WORKSPACE_MRU_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : [];
+    const out = [];
+    for (const it of items) {
+      const id = String(it || '').trim();
+      if (!id) continue;
+      if (out.includes(id)) continue;
+      out.push(id);
+      if (out.length >= WORKSPACE_MRU_MAX) break;
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+function setStoredWorkspaceMruIds(ids) {
+  try {
+    const list = Array.isArray(ids) ? ids : [];
+    localStorage.setItem(WORKSPACE_MRU_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+function bumpWorkspaceMru(workspaceId) {
+  const id = String(workspaceId || '').trim();
+  if (!id) return;
+  const current = getStoredWorkspaceMruIds();
+  if (current[0] === id) return;
+  const next = [id, ...current.filter((x) => x !== id)].slice(0, WORKSPACE_MRU_MAX);
+  setStoredWorkspaceMruIds(next);
+}
+
+function orderWorkspacesByMru(workspaces, mruIds) {
+  const items = Array.isArray(workspaces) ? workspaces : [];
+  const ids = Array.isArray(mruIds) ? mruIds : [];
+
+  const rank = new Map();
+  let r = 0;
+  for (const id0 of ids) {
+    const id = String(id0 || '').trim();
+    if (!id) continue;
+    if (rank.has(id)) continue;
+    rank.set(id, r);
+    r += 1;
+  }
+
+  return items
+    .map((ws, idx) => ({ ws, idx }))
+    .sort((a, b) => {
+      const aId = String(a.ws?.id || '').trim();
+      const bId = String(b.ws?.id || '').trim();
+      const ai = rank.has(aId) ? rank.get(aId) : Number.POSITIVE_INFINITY;
+      const bi = rank.has(bId) ? rank.get(bId) : Number.POSITIVE_INFINITY;
+      if (ai !== bi) return ai - bi;
+      return a.idx - b.idx;
+    })
+    .map((x) => x.ws);
 }
 
 function syncWorkspaceIdToUrl(workspaceId) {
@@ -1407,14 +1472,27 @@ function renderWorkspacesSelect() {
     return;
   }
 
-  for (const ws of state.workspaces) {
+  const workspaceIdSet = new Set(state.workspaces.map((w) => String(w?.id || '').trim()).filter(Boolean));
+  const isValidWorkspaceId = (id) => {
+    const v = String(id || '').trim();
+    return v && workspaceIdSet.has(v);
+  };
+
+  if (!isValidWorkspaceId(state.workspaceId)) {
+    const fallbackId = getStoredWorkspaceMruIds().find((id) => isValidWorkspaceId(id)) || state.workspaces[0].id;
+    state.workspaceId = fallbackId;
+  }
+
+  bumpWorkspaceMru(state.workspaceId);
+  const orderedWorkspaces = orderWorkspacesByMru(state.workspaces, getStoredWorkspaceMruIds());
+
+  for (const ws of orderedWorkspaces) {
     const opt = document.createElement('option');
     opt.value = ws.id;
     opt.textContent = ws.name;
     select.appendChild(opt);
   }
 
-  if (!state.workspaceId || !selectedWorkspace()) state.workspaceId = state.workspaces[0].id;
   select.value = state.workspaceId;
   renderWorkspaceHeader();
   setStoredWorkspaceId(state.workspaceId);
@@ -4529,8 +4607,7 @@ function initHandlers() {
     }
 
     state.workspaceId = nextWorkspaceId;
-    setStoredWorkspaceId(state.workspaceId);
-    syncWorkspaceIdToUrl(state.workspaceId);
+    renderWorkspacesSelect();
 
     state.managerSessionId = null;
     state.executorSessionId = null;
