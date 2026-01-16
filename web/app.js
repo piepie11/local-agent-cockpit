@@ -205,6 +205,8 @@ const WORKSPACE_MRU_MAX = 40;
 const ASK_THREADS_COLLAPSED_KEY = 'askThreadsCollapsed';
 const ASK_CONFIG_COLLAPSED_KEY = 'askConfigCollapsed';
 const ASK_RENDER_MD_KEY = 'askRenderMd';
+const ASK_MESSAGES_DEFAULT_TAIL_LIMIT = 200;
+const ASK_MESSAGES_MAX_LIMIT = 5000;
 const HISTORY_LIST_COLLAPSED_KEY = 'historyListCollapsed';
 const HISTORY_RENDER_MD_KEY = 'historyRenderMd';
 const ONBOARDING_HIDE_KEY = 'ui.hideOnboardingEmptyWorkspace';
@@ -709,6 +711,11 @@ const I18N = {
     'toast.HIDDEN_PATH_FORBIDDEN': '无权限访问隐藏文件/目录（需要 ADMIN_TOKEN）',
     'toast.PATH_NOT_DIR': '路径不是目录',
     'toast.PATH_NOT_FILE': '路径不是文件',
+    'ask.messages_load_more': '加载更多',
+    'ask.messages_load_all': '加载全部',
+    'ask.messages_hint_tail': '默认仅加载最近 {n} 条消息（可点\"加载更多\"查看更早）',
+    'ask.messages_hint_all': '已加载 {n} 条消息',
+    'ask.messages_hint_max': '已加载最近 {n} 条（已到上限；如需完整记录请导出）',
   },
   en: {
     'top.workspace_select_title': 'Workspace',
@@ -897,6 +904,11 @@ const I18N = {
     'ask.queue_save': 'Save',
     'ask.queue_cancel': 'Cancel',
     'ask.confirm_queue_delete': 'Delete this queued item?',
+    'ask.messages_load_more': 'Load more',
+    'ask.messages_load_all': 'Load all',
+    'ask.messages_hint_tail': 'Showing last {n} messages (load more for older).',
+    'ask.messages_hint_all': 'Loaded {n} messages.',
+    'ask.messages_hint_max': 'Showing last {n} messages (max; export for full history).',
 
     'ask.toggle_threads_hide': 'Hide threads',
     'ask.toggle_threads_show': 'Show threads',
@@ -1153,6 +1165,11 @@ const state = {
   askThreadsSig: null,
   askMessages: [],
   askMessagesSig: null,
+  askMessagesTail: true,
+  askMessagesLimit: ASK_MESSAGES_DEFAULT_TAIL_LIMIT,
+  askMessagesLoading: false,
+  askMessagesLoadToken: 0,
+  askMessagesPrependScrollFix: false,
   askMessageOpen: {},
   askQueueItems: [],
   askQueueSig: null,
@@ -2342,12 +2359,52 @@ function renderAskThreads() {
     .join('');
 }
 
+function renderAskMessagesControls() {
+  const hintEl = q('#askMessagesHint');
+  const moreBtn = q('#askLoadMoreBtn');
+  const allBtn = q('#askLoadAllBtn');
+  if (!hintEl && !moreBtn && !allBtn) return;
+
+  const thread = selectedAskThread();
+  const msgs = state.askMessages || [];
+  const loaded = msgs.length;
+  const limit = Number(state.askMessagesLimit || ASK_MESSAGES_DEFAULT_TAIL_LIMIT);
+  const atMax = limit >= ASK_MESSAGES_MAX_LIMIT;
+  const maybeTruncated = Boolean(thread && loaded && loaded >= limit);
+  const canLoadMore = maybeTruncated && !atMax;
+
+  if (hintEl) {
+    let text = '';
+    if (!thread) text = '';
+    else if (!loaded) text = '';
+    else if (canLoadMore) text = t('ask.messages_hint_tail', { n: limit });
+    else if (atMax && loaded >= limit) text = t('ask.messages_hint_max', { n: limit });
+    else text = t('ask.messages_hint_all', { n: loaded });
+    hintEl.textContent = text;
+    hintEl.classList.toggle('hidden', !text);
+  }
+
+  const disabled = Boolean(state.askMessagesLoading);
+  if (moreBtn) {
+    moreBtn.disabled = disabled || !canLoadMore;
+    moreBtn.classList.toggle('hidden', !thread || !canLoadMore);
+  }
+  if (allBtn) {
+    const canLoadAll = canLoadMore && limit < ASK_MESSAGES_MAX_LIMIT;
+    allBtn.disabled = disabled || !canLoadAll;
+    allBtn.classList.toggle('hidden', !thread || !canLoadAll);
+  }
+}
+
 function renderAskMessages() {
   const host = q('#askMessages');
   if (!host) return;
 
+  renderAskMessagesControls();
+
   const wasNearBottom = isNearBottom(host, 80);
   const prevScrollTop = host.scrollTop;
+  const prevScrollHeight = host.scrollHeight;
 
   const thread = selectedAskThread();
   if (!thread) {
@@ -2398,10 +2455,13 @@ function renderAskMessages() {
 
   // Only stick to bottom if the user was already near bottom (or explicitly requested).
   const force = Boolean(state.askForceScrollToBottom);
+  const prependFix = Boolean(state.askMessagesPrependScrollFix);
   state.askForceScrollToBottom = false;
+  state.askMessagesPrependScrollFix = false;
 
   try {
     if (force || wasNearBottom) host.scrollTop = host.scrollHeight;
+    else if (prependFix) host.scrollTop = prevScrollTop + (host.scrollHeight - prevScrollHeight);
     else host.scrollTop = prevScrollTop;
   } catch {}
 }
@@ -3329,6 +3389,10 @@ async function loadAskThreads(workspaceId, options = {}) {
     state.askThreadId = null;
     state.askMessages = [];
     state.askMessagesSig = null;
+    state.askMessagesTail = true;
+    state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+    state.askMessagesLoading = false;
+    state.askMessagesPrependScrollFix = false;
     state.askQueueItems = [];
     state.askQueueSig = null;
     state.askQueueItemOpen = {};
@@ -3341,10 +3405,14 @@ async function loadAskThreads(workspaceId, options = {}) {
     state.askThreadId = items[0].id;
     state.askMessages = [];
     state.askMessagesSig = null;
+    state.askMessagesTail = true;
+    state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+    state.askMessagesLoading = false;
+    state.askMessagesPrependScrollFix = false;
     state.askQueueItems = [];
     state.askQueueSig = null;
     selectionChanged = true;
-    await loadAskMessages(state.askThreadId).catch(toast);
+    await loadAskMessages(state.askThreadId, { tail: true, limit: state.askMessagesLimit }).catch(toast);
     await loadAskQueue(state.askThreadId).catch(toast);
   }
   if (threadsChanged || selectionChanged) {
@@ -3369,20 +3437,55 @@ async function loadAskThreads(workspaceId, options = {}) {
   return { threadsChanged, selectionChanged };
 }
 
-async function loadAskMessages(threadId) {
+async function loadAskMessages(threadId, options = {}) {
   const token = getAdminToken();
   if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
-  const data = await fetchJson(`/api/ask/threads/${encodeURIComponent(threadId)}/messages?limit=2000`, {
-    headers: { ...authHeaders() },
-  });
-  const items = data.items || [];
-  const sig = askMessagesSignature(threadId, items);
-  if (sig === state.askMessagesSig) return;
+  const id = String(threadId || '').trim();
+  if (!id) return;
+
+  const limitRaw = options?.limit ?? state.askMessagesLimit ?? ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+  const limit = Number.isFinite(Number(limitRaw)) ? Number(limitRaw) : ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+  const tail = options?.tail === undefined ? Boolean(state.askMessagesTail ?? true) : Boolean(options.tail);
+
+  const params = new URLSearchParams();
+  params.set('limit', String(limit));
+  if (tail) params.set('tail', '1');
+  const url = `/api/ask/threads/${encodeURIComponent(id)}/messages?${params.toString()}`;
+
+  const loadToken = (state.askMessagesLoadToken || 0) + 1;
+  state.askMessagesLoadToken = loadToken;
+  state.askMessagesLoading = true;
+  renderAskMessagesControls();
+
+  let data;
+  try {
+    data = await fetchJson(url, { headers: { ...authHeaders() } });
+  } finally {
+    if (state.askMessagesLoadToken === loadToken) {
+      state.askMessagesLoading = false;
+      renderAskMessagesControls();
+    }
+  }
+
+  // Ignore stale responses (user switched threads while this request was in-flight).
+  if (state.askThreadId !== id) return;
+
+  const items = data?.items || [];
+  const sig = askMessagesSignature(id, items);
+
+  state.askMessagesTail = tail;
+  state.askMessagesLimit = limit;
+
+  if (sig === state.askMessagesSig) {
+    renderAskMessagesControls();
+    return;
+  }
+
   state.askMessages = items;
   state.askMessagesSig = sig;
   renderAskMessages();
-  updateAskElapsedFromMessages(threadId, items);
-  if (state.askThreadId === threadId) renderAskStatusMeta(selectedAskThread());
+  updateAskElapsedFromMessages(id, items);
+  if (state.askThreadId === id) renderAskStatusMeta(selectedAskThread());
 }
 
 async function loadAskQueue(threadId) {
@@ -3420,7 +3523,7 @@ async function refreshAskFromRealtimeEvent() {
   const { selectionChanged } = await loadAskThreads(state.workspaceId, { renderMode: 'list', context: 'ASK_SSE_REFRESH' });
   if (state.askThreadId) {
     try {
-      await loadAskMessages(state.askThreadId);
+      await loadAskMessages(state.askThreadId, { tail: state.askMessagesTail, limit: state.askMessagesLimit });
     } catch (err) {
       reportAskRenderError(err, 'ASK_SSE_REFRESH loadAskMessages');
       throw err;
@@ -4042,6 +4145,10 @@ async function selectAskThreadById(threadId) {
   state.askLastSendEndedAt = null;
   state.askLastSendElapsedMs = null;
   state.askForceScrollToBottom = true;
+  state.askMessagesTail = true;
+  state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+  state.askMessagesLoading = false;
+  state.askMessagesPrependScrollFix = false;
   state.askQueueItems = [];
   state.askQueueSig = null;
   state.askQueueItemOpen = {};
@@ -4054,6 +4161,36 @@ async function selectAskThreadById(threadId) {
   await loadAskMessages(threadId);
   await loadAskQueue(threadId);
   maybeStartAskRecovery();
+}
+
+async function loadMoreAskMessagesFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const threadId = state.askThreadId;
+  if (!threadId) throw new Error('ASK_THREAD_NOT_FOUND');
+  if (state.askMessagesLoading) return;
+
+  const current = Number(state.askMessagesLimit || ASK_MESSAGES_DEFAULT_TAIL_LIMIT);
+  const next = Math.min(ASK_MESSAGES_MAX_LIMIT, Math.max(ASK_MESSAGES_DEFAULT_TAIL_LIMIT, current * 2));
+  if (next <= current) return;
+
+  state.askMessagesPrependScrollFix = true;
+  await loadAskMessages(threadId, { tail: true, limit: next });
+}
+
+async function loadAllAskMessagesFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const threadId = state.askThreadId;
+  if (!threadId) throw new Error('ASK_THREAD_NOT_FOUND');
+  if (state.askMessagesLoading) return;
+
+  const current = Number(state.askMessagesLimit || ASK_MESSAGES_DEFAULT_TAIL_LIMIT);
+  const next = ASK_MESSAGES_MAX_LIMIT;
+  if (next <= current) return;
+
+  state.askMessagesPrependScrollFix = true;
+  await loadAskMessages(threadId, { tail: true, limit: next });
 }
 
 async function createAskThreadFromUi() {
@@ -4810,6 +4947,11 @@ function initHandlers() {
     state.askThreadsSig = null;
     state.askMessages = [];
     state.askMessagesSig = null;
+    state.askMessagesTail = true;
+    state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+    state.askMessagesLoading = false;
+    state.askMessagesLoadToken = 0;
+    state.askMessagesPrependScrollFix = false;
     state.askMessageOpen = {};
     state.askQueueItems = [];
     state.askQueueSig = null;
@@ -5155,6 +5297,10 @@ function initHandlers() {
     if (!item) return;
     selectAskThreadById(item.dataset.askThreadId).catch(toast);
   });
+  const loadMoreBtn = q('#askLoadMoreBtn');
+  if (loadMoreBtn) loadMoreBtn.addEventListener('click', () => loadMoreAskMessagesFromUi().catch(toast));
+  const loadAllBtn = q('#askLoadAllBtn');
+  if (loadAllBtn) loadAllBtn.addEventListener('click', () => loadAllAskMessagesFromUi().catch(toast));
   q('#askSendBtn').addEventListener('click', () => sendAskFromUi().catch(toast));
   q('#askStopBtn').addEventListener('click', () => stopAskFromUi().catch(toast));
   q('#askInput').addEventListener('keydown', (e) => {

@@ -571,16 +571,21 @@
               </div>
               <button id="askExportMdBtn" class="btn btn--ghost" data-i18n="ask.export_md">导出 .md</button>
               <button id="askExportJsonlBtn" class="btn btn--ghost" data-i18n="ask.export_jsonl">导出 .jsonl</button>
-              <label class="check" data-i18n-title="md.render_title">
-                <input id="askRenderMdToggle" type="checkbox" />
-                <span data-i18n="md.render">MD 渲染</span>
-              </label>
-            </div>
-            <div id="askMessages" class="chat">(暂无消息)</div>
-            <details id="askQueuePanel" class="details">
-              <summary>
-                <span data-i18n="ask.queue_title">队列</span>
-                <span id="askQueueCount" class="mono"></span>
+               <label class="check" data-i18n-title="md.render_title">
+                 <input id="askRenderMdToggle" type="checkbox" />
+                 <span data-i18n="md.render">MD 渲染</span>
+               </label>
+             </div>
+             <div class="row">
+               <div id="askMessagesHint" class="hint mono hidden"></div>
+               <button id="askLoadMoreBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_more">加载更多</button>
+               <button id="askLoadAllBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_all">加载全部</button>
+             </div>
+             <div id="askMessages" class="chat">(暂无消息)</div>
+             <details id="askQueuePanel" class="details">
+               <summary>
+                 <span data-i18n="ask.queue_title">队列</span>
+                 <span id="askQueueCount" class="mono"></span>
               </summary>
               <div id="askQueue" class="queue">(无)</div>
             </details>
