@@ -1226,13 +1226,8 @@ function setPage(page) {
     btn.classList.toggle('nav__btn--active', btn.dataset.page === p);
   });
   renderOnboarding();
-  if (p === 'ask' && state.workspaceId) {
-    loadAskThreads(state.workspaceId).catch(toast);
-  }
   ensureAskSse();
-  if (p === 'files' && state.workspaceId) {
-    loadFilesList(state.workspaceId, state.filesDir).catch(toast);
-  }
+  if (state.workspaceId) ensureWorkspaceDataForCurrentPage().catch(toast);
 }
 
 function setTab(tab) {
@@ -4610,26 +4605,67 @@ async function selectRun(runId) {
   openRunStream(runId);
 }
 
-async function onWorkspaceChanged() {
+async function ensureWorkspaceDataForCurrentPage() {
   const workspaceId = state.workspaceId;
   if (!workspaceId) return;
+
   renderWorkspaceHeader();
-  await loadSessions(workspaceId);
-  await loadRollovers(workspaceId);
-  await loadRuns(workspaceId);
-  if (state.page === 'ask') await loadAskThreads(workspaceId).catch(toast);
-  if (state.page === 'ask') ensureAskSse();
-  if (state.page === 'files') await loadFilesList(workspaceId, state.filesDir).catch(toast);
-  if (state.runId) {
-    await selectRun(state.runId);
-  } else {
-    state.runDetail = null;
-    closeEventSource();
-    state.events = [];
-    renderRunHeader();
-    renderFeedsFromRunDetail();
-    renderEvents();
+
+  // Load only what the current page needs to avoid expensive full refreshes when switching workspaces.
+  // (Some workspaces can have huge ask threads / run histories.)
+  const p = normalizePage(state.page);
+
+  if (p === 'dashboard') {
+    await Promise.all([loadSessions(workspaceId), loadRollovers(workspaceId), loadRuns(workspaceId)]);
+    if (state.runId) {
+      // Keep selection if still valid.
+      if (!state.runs.some((r) => r.id === state.runId)) state.runId = null;
+    }
+    if (state.runId) {
+      await selectRun(state.runId);
+    } else {
+      state.runDetail = null;
+      closeEventSource();
+      state.events = [];
+      renderRunHeader();
+      renderFeedsFromRunDetail();
+      renderEvents();
+    }
+    return;
   }
+
+  if (p === 'history') {
+    await loadRuns(workspaceId);
+    return;
+  }
+
+  if (p === 'sessions') {
+    await Promise.all([loadSessions(workspaceId), loadRollovers(workspaceId)]);
+    return;
+  }
+
+  if (p === 'ask') {
+    ensureAskSse();
+    if (!getAdminToken()) {
+      // Avoid toasting on page changes / token typing: the Ask panel renders a clear "ADMIN_TOKEN_REQUIRED" hint.
+      renderAskThreads();
+      renderAskThread();
+      renderAskMessages();
+      renderAskQueue();
+      return;
+    }
+    await loadAskThreads(workspaceId).catch(toast);
+    return;
+  }
+
+  if (p === 'files') {
+    await loadFilesList(workspaceId, state.filesDir).catch(toast);
+  }
+}
+
+// Backwards-compatible alias: older call sites expect this name.
+async function onWorkspaceChanged() {
+  return ensureWorkspaceDataForCurrentPage();
 }
 
 function toast(err) {
@@ -4687,8 +4723,10 @@ function initTokenBox() {
     renderAskThreads();
     renderAskThread();
     ensureAskSse();
-    if (state.page === 'ask' && state.workspaceId && getAdminToken()) loadAskThreads(state.workspaceId).catch(() => {});
-    if (state.page === 'files' && state.workspaceId) loadFilesList(state.workspaceId, state.filesDir, { preserveSelection: true }).catch(() => {});
+    // Only refresh token-sensitive pages; avoid reloading run/session lists on every keystroke.
+    if (state.workspaceId && (state.page === 'ask' || state.page === 'files')) {
+      ensureWorkspaceDataForCurrentPage().catch(() => {});
+    }
   });
 }
 
