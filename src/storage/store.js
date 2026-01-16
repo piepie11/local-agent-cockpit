@@ -570,6 +570,30 @@ class Store {
       }));
   }
 
+  // List the most recent N messages, returned in chronological (ASC) order.
+  listAskMessagesTail(threadId, limit = 500) {
+    const n = Number.isFinite(Number(limit)) ? Number(limit) : 500;
+    const items = this.db
+      .prepare(
+        `SELECT id, threadId, role, text, metaJson, createdAt
+         FROM ask_messages
+         WHERE threadId = ?
+         ORDER BY createdAt DESC
+         LIMIT ?`
+      )
+      .all(threadId, n)
+      .map((r) => ({
+        id: r.id,
+        threadId: r.threadId,
+        role: r.role,
+        text: r.text,
+        meta: JSON.parse(r.metaJson),
+        createdAt: r.createdAt,
+      }));
+    items.reverse();
+    return items;
+  }
+
   createAskMessage({ id = randomUUID(), threadId, role, text, metaJson = '{}', createdAt = nowMs() }) {
     this.db
       .prepare(

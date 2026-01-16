@@ -783,7 +783,9 @@ function createServer() {
     if (!thread) return res.status(404).json({ error: 'ASK_THREAD_NOT_FOUND' });
     const limitRaw = req.query?.limit;
     const limit = Number.isFinite(Number(limitRaw)) ? Number(limitRaw) : 500;
-    res.json({ items: store.listAskMessages(thread.id, limit) });
+    const tailRaw = String(req.query?.tail || '').trim().toLowerCase();
+    const tail = tailRaw === '1' || tailRaw === 'true' || tailRaw === 'yes';
+    res.json({ items: tail ? store.listAskMessagesTail(thread.id, limit) : store.listAskMessages(thread.id, limit) });
   });
 
   app.get('/api/ask/threads/:id/queue', requireAdmin({ config }), (req, res) => {

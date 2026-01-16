@@ -371,12 +371,27 @@ async function main() {
     // list messages
     const msgs = await fetchJsonExpect(
       baseUrl,
-      `/api/ask/threads/${encodeURIComponent(threadId)}/messages?limit=50`,
+      `/api/ask/threads/${encodeURIComponent(threadId)}/messages?limit=5000`,
       { headers: { 'x-admin-token': token } },
       200
     );
     assert(Array.isArray(msgs.body.items), 'messages.items should be array');
     assert(msgs.body.items.length >= 4, `expected >=4 messages, got ${msgs.body.items.length}`);
+
+    // tail=1 should return the most recent N messages (still in ASC order for UI)
+    const tail2 = await fetchJsonExpect(
+      baseUrl,
+      `/api/ask/threads/${encodeURIComponent(threadId)}/messages?tail=1&limit=2`,
+      { headers: { 'x-admin-token': token } },
+      200
+    );
+    const fullItems = msgs.body.items || [];
+    const tailItems = tail2.body.items || [];
+    assert(Array.isArray(tailItems), 'tail messages.items should be array');
+    assert(tailItems.length === 2, `expected 2 tail messages, got ${tailItems.length}`);
+    const fullTailIds = fullItems.slice(-2).map((m) => m.id).join(',');
+    const tailIds = tailItems.map((m) => m.id).join(',');
+    assert(tailIds === fullTailIds, `tail ids should match last 2 ids (tail=${tailIds} full=${fullTailIds})`);
 
     // exports
     const md = await fetchTextExpect(
