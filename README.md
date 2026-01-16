@@ -52,6 +52,10 @@
 
 补充：Workspace 下拉列表按“最近使用（MRU）”排序，存储在浏览器 `localStorage`（key=`workspaceMru`）；如需重置可清理站点数据或删除该 key。
 
+性能提示（大 workspace 更明显）：
+- 切换 workspace 时按当前页面懒加载数据（Dashboard/History/Sessions/Ask/Files），避免全量刷新导致卡顿。
+- Ask 页默认只加载最近 200 条消息；如需查看更多历史，可在消息区上方点击“加载更多/加载全部”。
+
 ## Provider
 
 - `codex`：真实调用 `codex exec --json --output-last-message`（需要本机已安装并登录 Codex CLI）
