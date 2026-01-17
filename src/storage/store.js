@@ -196,7 +196,22 @@ class Store {
     return info.changes > 0;
   }
 
-  listRuns(workspaceId) {
+  listRuns(workspaceId, limit) {
+    const n0 = Number(limit);
+    const n = Number.isFinite(n0) && n0 > 0 ? n0 : null;
+    if (n !== null) {
+      return this.db
+        .prepare(
+          `SELECT id, workspaceId, managerSessionId, executorSessionId, status, turnIndex,
+                  createdAt, startedAt, endedAt, optionsJson, error
+           FROM runs
+           WHERE workspaceId = ?
+           ORDER BY createdAt DESC
+           LIMIT ?`
+        )
+        .all(workspaceId, n);
+    }
+
     return this.db
       .prepare(
         `SELECT id, workspaceId, managerSessionId, executorSessionId, status, turnIndex,
@@ -594,6 +609,27 @@ class Store {
     return items;
   }
 
+  getAskLastAssistantMessage(threadId) {
+    const row = this.db
+      .prepare(
+        `SELECT id, threadId, role, text, metaJson, createdAt
+         FROM ask_messages
+         WHERE threadId = ? AND role = 'assistant'
+         ORDER BY createdAt DESC
+         LIMIT 1`
+      )
+      .get(String(threadId || ''));
+    if (!row) return null;
+    return {
+      id: row.id,
+      threadId: row.threadId,
+      role: row.role,
+      text: row.text,
+      meta: JSON.parse(row.metaJson),
+      createdAt: row.createdAt,
+    };
+  }
+
   createAskMessage({ id = randomUUID(), threadId, role, text, metaJson = '{}', createdAt = nowMs() }) {
     this.db
       .prepare(
@@ -608,6 +644,48 @@ class Store {
       text: String(text ?? ''),
       meta: JSON.parse(String(metaJson ?? '{}')),
       createdAt,
+    };
+  }
+
+  getAskQueueCounts(threadId) {
+    const rows = this.db
+      .prepare(
+        `SELECT status, COUNT(*) AS n
+         FROM ask_queue_items
+         WHERE threadId = ?
+         GROUP BY status`
+      )
+      .all(String(threadId || ''));
+    const out = { queued: 0, running: 0, error: 0 };
+    for (const r of rows) {
+      const status = String(r?.status || '');
+      if (status === 'queued' || status === 'running' || status === 'error') out[status] = Number(r?.n || 0);
+    }
+    return out;
+  }
+
+  getAskLastQueueError(threadId) {
+    const row = this.db
+      .prepare(
+        `SELECT id, threadId, status, text, error, metaJson, createdAt, updatedAt, startedAt, endedAt
+         FROM ask_queue_items
+         WHERE threadId = ? AND status = 'error'
+         ORDER BY updatedAt DESC
+         LIMIT 1`
+      )
+      .get(String(threadId || ''));
+    if (!row) return null;
+    return {
+      id: row.id,
+      threadId: row.threadId,
+      status: row.status,
+      text: row.text,
+      error: row.error ?? null,
+      meta: JSON.parse(row.metaJson),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      startedAt: row.startedAt ?? null,
+      endedAt: row.endedAt ?? null,
     };
   }
 

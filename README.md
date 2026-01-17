@@ -1,4 +1,5 @@
-﻿# local-agent-cockpit
+﻿# auto_codex
+
 手机可用的 Web 控制台，用来编排 **Manager ↔ Executor** 回合制协作（目前以 **Codex CLI** 为主，Claude 作为后续扩展）。
 
 ## 详细文档
@@ -42,13 +43,19 @@
 
 1) Settings：查看 health（allowed roots / token source），填入 `ADMIN_TOKEN`（写操作必须）
 2) Settings：添加 workspace（rootPath 必须在 `ALLOWED_WORKSPACE_ROOTS` 内）
-3) Dashboard：
+3) Home（首页，总览）：
+   - 每个 workspace 显示：`最近一个 Run` + `Ask（用户窗口）`
+   - Run 只展示最新一个（即使不在 running）
+   - Ask 展示该 workspace 下所有 threads（需要 `ADMIN_TOKEN` 才能看到）
+   - 状态会用颜色区分；当 Run 结束/报错/暂停，或 Ask 有新回复/队列错误，会高亮提示直到点击“查看/忽略”
+   - 首页“配置”可隐藏不常用 workspace（均存储在浏览器 `localStorage`）
+4) Dashboard：
    - Create default sessions（会创建 codex 的 manager/executor sessions，默认 `mode=stateful_resume`；可在 Sessions 页改为 `stateless_exec`）
    - Create run（可设置 maxTurns/timeout/repoDigest/requireGitClean/noProgressLimit 等）
    - Start / Step / Pause / Stop
    - Inject：给 manager/executor 手动插话纠偏
    - Export：导出 md/json/jsonl
-4) History：查看按轮次展开的 prompt/output，并支持关键词过滤（turns search）
+5) History：查看按轮次展开的 prompt/output，并支持关键词过滤（turns search）
 
 补充：Workspace 下拉列表按“最近使用（MRU）”排序，存储在浏览器 `localStorage`（key=`workspaceMru`）；如需重置可清理站点数据或删除该 key。
 
@@ -77,6 +84,8 @@
 - `npm run m2:api:e2e`：后端 API 深度 e2e（含 auth/allowlist/并发锁/SSE/导出/保护开关）
 - `npm run m2:deep`：全量回归（串行跑完上述核心用例）
 - `npm run m6:notify:e2e`：通知 e2e（本地 mock PushPlus，不会真实推送）
+- `npm run m8:workspace:mru:e2e`：UI e2e，验证 workspace 下拉 MRU 排序（需要本机 Chrome）
+- `npm run m9:home:e2e`：UI e2e，验证首页总览（最新 run/ask，高亮/忽略/隐藏）（需要本机 Chrome）
 
 ## 10 分钟跑通（Checklist）
 1) 安装依赖：
@@ -120,4 +129,3 @@ pm run up）
   4) PUSHPLUS_TOKEN 是否正确
   5) 服务器是否能访问推送服务
   6) 是否被平台限频/限流
-

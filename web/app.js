@@ -207,6 +207,10 @@ const ASK_CONFIG_COLLAPSED_KEY = 'askConfigCollapsed';
 const ASK_RENDER_MD_KEY = 'askRenderMd';
 const ASK_MESSAGES_DEFAULT_TAIL_LIMIT = 200;
 const ASK_MESSAGES_MAX_LIMIT = 5000;
+const HOME_HIDDEN_WORKSPACES_KEY = 'homeHiddenWorkspaces';
+const HOME_SEEN_RUNS_KEY = 'homeSeenRuns';
+const HOME_SEEN_ASK_KEY = 'homeSeenAsk';
+const HOME_POLL_INTERVAL_MS = 2500;
 const HISTORY_LIST_COLLAPSED_KEY = 'historyListCollapsed';
 const HISTORY_RENDER_MD_KEY = 'historyRenderMd';
 const ONBOARDING_HIDE_KEY = 'ui.hideOnboardingEmptyWorkspace';
@@ -233,6 +237,23 @@ function setStoredBool(key, value) {
   } catch {}
 }
 
+function getStoredJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed === undefined ? fallback : parsed;
+  } catch {
+    return fallback;
+  }
+}
+
+function setStoredJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value ?? null));
+  } catch {}
+}
+
 function loadAskLayoutPrefs() {
   state.askThreadsCollapsed = getStoredBool(ASK_THREADS_COLLAPSED_KEY, false);
   state.askConfigCollapsed = getStoredBool(ASK_CONFIG_COLLAPSED_KEY, false);
@@ -251,6 +272,24 @@ function loadHistoryLayoutPrefs() {
 
 function persistHistoryLayoutPrefs() {
   setStoredBool(HISTORY_LIST_COLLAPSED_KEY, Boolean(state.historyListCollapsed));
+}
+
+function loadHomePrefs() {
+  state.homeHiddenWorkspaces = getStoredJson(HOME_HIDDEN_WORKSPACES_KEY, {}) || {};
+  state.homeSeenRuns = getStoredJson(HOME_SEEN_RUNS_KEY, {}) || {};
+  state.homeSeenAsk = getStoredJson(HOME_SEEN_ASK_KEY, {}) || {};
+}
+
+function persistHomeHiddenWorkspaces() {
+  setStoredJson(HOME_HIDDEN_WORKSPACES_KEY, state.homeHiddenWorkspaces || {});
+}
+
+function persistHomeSeenRuns() {
+  setStoredJson(HOME_SEEN_RUNS_KEY, state.homeSeenRuns || {});
+}
+
+function persistHomeSeenAsk() {
+  setStoredJson(HOME_SEEN_ASK_KEY, state.homeSeenAsk || {});
 }
 
 function normalizeLang(value) {
@@ -384,12 +423,24 @@ const I18N = {
     'top.lang_toggle': 'EN',
     'top.lang_toggle_title': '切换语言（中文/English）',
 
+    'nav.home': '首页',
     'nav.dashboard': '控制台',
     'nav.history': '历史',
     'nav.sessions': '会话',
     'nav.ask': 'Codex 用户窗口',
     'nav.files': '文件',
     'nav.settings': '设置',
+
+    'home.title': '首页',
+    'home.configure': '配置',
+    'home.configure_title': '首页配置',
+    'home.show_all': '全部显示',
+    'home.hide_all': '全部隐藏',
+    'home.section_run': '最近一个 Run',
+    'home.section_ask': 'Ask（用户窗口）',
+    'home.no_runs': '(暂无 runs)',
+    'home.no_threads': '(暂无对话)',
+    'home.ask_need_token': '需要 ADMIN_TOKEN 才能查看 Ask',
 
     'workspace_modal.title': '新建工作区',
     'workspace_modal.name_label': '名称（可选）',
@@ -596,7 +647,7 @@ const I18N = {
     'settings.title': '设置',
     'settings.allowed_roots_title': '允许的 rootPath（白名单）',
     'settings.allowed_roots_hint':
-      '注：用于限制可注册 workspace 的目录范围；写入需要 ADMIN_TOKEN；修改会持久化到 DB 并立即生效（重启后仍有效）。',
+      '注：用于限制可注册 workspace 的目录范围；写入需要 ADMIN_TOKEN；修改会持久化到 DB 并立即生效（重启后仍有效）。避免填写 C:\\\\ 或 / 这种过宽的根目录，以免显著放大风险面。',
     'settings.allowed_roots_placeholder': '每行一个绝对路径，例如 E:\\\\sjt\\\\others',
     'settings.allowed_roots_load': '从 health 填充',
     'settings.allowed_roots_save': '保存',
@@ -648,6 +699,7 @@ const I18N = {
     'label.ended': '结束',
     'label.view': '查看',
     'label.dashboard': '控制台',
+    'label.ignore': '忽略',
     'label.manager_prompt': '主管 prompt',
     'label.manager_output': '主管输出',
     'label.manager_meta': '主管 meta',
@@ -728,12 +780,24 @@ const I18N = {
     'top.lang_toggle': '中文',
     'top.lang_toggle_title': 'Switch language (中文/English)',
 
+    'nav.home': 'Home',
     'nav.dashboard': 'Dashboard',
     'nav.history': 'History',
     'nav.sessions': 'Sessions',
     'nav.ask': 'User Window',
     'nav.files': 'Files',
     'nav.settings': 'Settings',
+
+    'home.title': 'Home',
+    'home.configure': 'Configure',
+    'home.configure_title': 'Home config',
+    'home.show_all': 'Show all',
+    'home.hide_all': 'Hide all',
+    'home.section_run': 'Latest Run',
+    'home.section_ask': 'Ask (User Window)',
+    'home.no_runs': '(no runs)',
+    'home.no_threads': '(no threads)',
+    'home.ask_need_token': 'ADMIN_TOKEN required for Ask',
 
     'workspace_modal.title': 'Create workspace',
     'workspace_modal.name_label': 'Name (optional)',
@@ -945,7 +1009,7 @@ const I18N = {
     'settings.title': 'Settings',
     'settings.allowed_roots_title': 'Allowed rootPath (allowlist)',
     'settings.allowed_roots_hint':
-      'Note: limits where workspaces can be registered; requires ADMIN_TOKEN to write; saved to DB and takes effect immediately (persists after restart).',
+      'Used to restrict workspace rootPath. Requires ADMIN_TOKEN. Saved in DB and effective immediately (persists across restarts). Avoid overly broad roots like C:\\\\ or / unless you understand the risk.',
     'settings.allowed_roots_placeholder': 'One absolute path per line, e.g. E:\\\\projects',
     'settings.allowed_roots_load': 'Fill from health',
     'settings.allowed_roots_save': 'Save',
@@ -997,6 +1061,7 @@ const I18N = {
     'label.ended': 'ended',
     'label.view': 'View',
     'label.dashboard': 'Dashboard',
+    'label.ignore': 'Ignore',
     'label.manager_prompt': 'manager prompt',
     'label.manager_output': 'manager output',
     'label.manager_meta': 'manager meta',
@@ -1128,7 +1193,7 @@ const state = {
   historyRunDetail: null,
   historyListCollapsed: false,
   historyRenderMarkdown: false,
-  page: 'dashboard',
+  page: 'home',
   tab: 'manager',
   mdKind: 'plan',
   mdPath: '',
@@ -1191,6 +1256,16 @@ const state = {
   askSseKey: null,
   askSseRefreshTimer: null,
   askDebugText: '',
+  homeHiddenWorkspaces: {},
+  homeSeenRuns: {},
+  homeSeenAsk: {},
+  homeSummaries: [],
+  homeAskLastMessages: {},
+  homeLastLoadedAt: 0,
+  homeLoading: false,
+  homeError: '',
+  homePollTimer: null,
+  homePollToken: 0,
   workspaceModalMode: 'create',
   workspaceModalWorkspaceId: null,
   workspaceDocModalKind: 'plan',
@@ -1203,7 +1278,7 @@ const state = {
 
 function normalizePage(value) {
   const p = String(value || '').trim().toLowerCase();
-  if (['dashboard', 'history', 'sessions', 'ask', 'files', 'settings'].includes(p)) return p;
+  if (['home', 'dashboard', 'history', 'sessions', 'ask', 'files', 'settings'].includes(p)) return p;
   return 'dashboard';
 }
 
@@ -1213,6 +1288,7 @@ function getInitialPageFromUrl() {
     const fromQuery = params.get('page');
     if (fromQuery) return normalizePage(fromQuery);
     const path = String(window.location.pathname || '').toLowerCase();
+    if (path === '/home' || path.startsWith('/home/')) return 'home';
     if (path === '/ask' || path.startsWith('/ask/')) return 'ask';
     if (path === '/files' || path.startsWith('/files/')) return 'files';
   } catch {}
@@ -1231,8 +1307,9 @@ function getInitialWorkspaceIdFromUrl() {
 const URL_INITIAL_WORKSPACE_ID = getInitialWorkspaceIdFromUrl();
 state.page = getInitialPageFromUrl() || state.page;
 
-function setPage(page) {
+function setPage(page, options = {}) {
   const p = normalizePage(page);
+  const skipEnsure = Boolean(options?.skipEnsure);
   if (state.page === 'files' && p !== 'files') {
     if (!confirmDiscardFilesChangesIfAny()) return;
   }
@@ -1244,7 +1321,13 @@ function setPage(page) {
   });
   renderOnboarding();
   ensureAskSse();
-  if (state.workspaceId) ensureWorkspaceDataForCurrentPage().catch(toast);
+  if (p === 'home') {
+    ensureHomePoll();
+    if (!skipEnsure && state.workspaces.length) loadHomeData({ context: 'PAGE_HOME', silent: true }).catch(() => {});
+  } else {
+    clearHomePoll();
+  }
+  if (!skipEnsure && p !== 'home' && state.workspaceId) ensureWorkspaceDataForCurrentPage().catch(toast);
 }
 
 function setTab(tab) {
@@ -1480,6 +1563,333 @@ function renderOnboarding() {
   const tokenInput = mustGetEl('#adminToken');
   const addWorkspaceBtn = mustGetEl('#addWorkspaceBtn');
   [tokenInput, addWorkspaceBtn].forEach((el) => el.classList.toggle('onboarding-highlight', show));
+}
+
+function homeIsWorkspaceHidden(workspaceId) {
+  const id = String(workspaceId || '').trim();
+  if (!id) return false;
+  return Boolean(state.homeHiddenWorkspaces && state.homeHiddenWorkspaces[id]);
+}
+
+function homeSetWorkspaceHidden(workspaceId, hidden) {
+  const id = String(workspaceId || '').trim();
+  if (!id) return;
+  if (!state.homeHiddenWorkspaces) state.homeHiddenWorkspaces = {};
+  if (hidden) state.homeHiddenWorkspaces[id] = true;
+  else delete state.homeHiddenWorkspaces[id];
+  persistHomeHiddenWorkspaces();
+}
+
+function homeRunSignature(run) {
+  const r = run || null;
+  const id = String(r?.id || '').trim();
+  const st = String(r?.status || '').trim();
+  return id && st ? `${id}:${st}` : '';
+}
+
+function homeGetRunAttentionClass(workspaceId, run) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId || !run) return '';
+  const status = String(run.status || '').trim().toUpperCase();
+  // Only highlight "needs attention" states until the user views/ignores.
+  if (!['PAUSED', 'DONE', 'STOPPED', 'ERROR'].includes(status)) return '';
+
+  const seenSig = String(state.homeSeenRuns?.[wsId] || '');
+  const sig = homeRunSignature(run);
+  if (sig && sig === seenSig) return '';
+
+  if (status === 'DONE') return ' homeItem--attn-good';
+  if (status === 'ERROR') return ' homeItem--attn-bad';
+  return ' homeItem--attn-warn';
+}
+
+function homeMarkRunSeen(workspaceId, run) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId || !run) return;
+  if (!state.homeSeenRuns) state.homeSeenRuns = {};
+  state.homeSeenRuns[wsId] = homeRunSignature(run);
+  persistHomeSeenRuns();
+}
+
+function homeNormalizeSeenAskEntry(value) {
+  // Stored shape: { assistantId, queueErrorId }
+  if (!value || typeof value !== 'object') return { assistantId: null, queueErrorId: null };
+  const assistantId = value.assistantId ? String(value.assistantId) : null;
+  const queueErrorId = value.queueErrorId ? String(value.queueErrorId) : null;
+  return { assistantId: assistantId || null, queueErrorId: queueErrorId || null };
+}
+
+function homeGetAskAttentionClass(thread) {
+  const id = String(thread?.id || '').trim();
+  if (!id) return '';
+  const seen = homeNormalizeSeenAskEntry(state.homeSeenAsk?.[id]);
+
+  const lastAssistantId = thread?.lastAssistant?.id ? String(thread.lastAssistant.id) : null;
+  const lastAssistantErr = thread?.lastAssistant?.error ? String(thread.lastAssistant.error) : '';
+  const lastQueueErrId = thread?.queue?.lastError?.id ? String(thread.queue.lastError.id) : null;
+
+  const unseenQueueError = Boolean(lastQueueErrId && lastQueueErrId !== seen.queueErrorId);
+  const unseenAssistant = Boolean(lastAssistantId && lastAssistantId !== seen.assistantId);
+
+  if (unseenQueueError) return ' homeItem--attn-bad';
+  if (unseenAssistant && lastAssistantErr) return ' homeItem--attn-bad';
+  if (unseenAssistant) return ' homeItem--attn-good';
+  return '';
+}
+
+function homeMarkAskSeen(thread) {
+  const id = String(thread?.id || '').trim();
+  if (!id) return;
+  if (!state.homeSeenAsk) state.homeSeenAsk = {};
+  state.homeSeenAsk[id] = {
+    assistantId: thread?.lastAssistant?.id ? String(thread.lastAssistant.id) : null,
+    queueErrorId: thread?.queue?.lastError?.id ? String(thread.queue.lastError.id) : null,
+  };
+  persistHomeSeenAsk();
+}
+
+function homeRunPillClass(statusRaw) {
+  const status = String(statusRaw || '').trim().toUpperCase();
+  if (status === 'RUNNING') return 'pill--run-running';
+  if (status === 'PAUSED') return 'pill--run-paused';
+  if (status === 'DONE') return 'pill--run-done';
+  if (status === 'ERROR') return 'pill--run-error';
+  if (status === 'STOPPED') return 'pill--run-stopped';
+  return 'pill--run-stopped';
+}
+
+function renderHomeStatus() {
+  const host = q('#homeStatus');
+  if (!host) return;
+  if (state.page !== 'home') {
+    host.textContent = '';
+    return;
+  }
+  const parts = [];
+  if (state.homeLoading) parts.push('loading...');
+  if (state.homeLastLoadedAt) parts.push(`updatedAt=${formatTs(state.homeLastLoadedAt)}`);
+  if (state.homeError) parts.push(`error=${String(state.homeError)}`);
+  host.textContent = parts.join(' · ');
+}
+
+function renderHome() {
+  const host = q('#homeWorkspaceList');
+  if (!host) return;
+
+  if (!state.workspaces.length) {
+    host.innerHTML = `<div class="hint">${escapeHtml(t('placeholder.no_workspaces'))}</div>`;
+    renderHomeStatus();
+    return;
+  }
+
+  const ordered = orderWorkspacesByMru(state.workspaces, getStoredWorkspaceMruIds());
+  const visible = ordered.filter((w) => !homeIsWorkspaceHidden(w.id));
+
+  const summaryByWsId = new Map();
+  for (const item of state.homeSummaries || []) {
+    const wsId = String(item?.workspaceId || '').trim();
+    if (!wsId) continue;
+    summaryByWsId.set(wsId, item);
+  }
+
+  if (!visible.length) {
+    host.innerHTML = `<div class="hint">${escapeHtml(t('placeholder.none'))}</div>`;
+    renderHomeStatus();
+    return;
+  }
+
+  const token = getAdminToken();
+
+  host.innerHTML = visible
+    .map((ws) => {
+      const wsId = String(ws.id || '').trim();
+      const s = summaryByWsId.get(wsId) || {};
+      const run = s.latestRun || null;
+      const threads = Array.isArray(s.threads) ? s.threads : [];
+
+      const runHtml = (() => {
+        if (!run) return `<div class="hint">${escapeHtml(t('home.no_runs'))}</div>`;
+        const attnCls = homeGetRunAttentionClass(wsId, run);
+        const st = String(run.status || '').trim().toUpperCase() || '-';
+        const createdAt = run.createdAt ? formatTs(run.createdAt) : '-';
+        const err = String(run.error || '').trim();
+        const runId = String(run.id || '');
+        const short = runId ? runId.slice(0, 8) : '-';
+        return `<div class="homeItem${attnCls}">
+  <div class="row">
+    <span class="pill pill--run ${homeRunPillClass(st)}">${escapeHtml(st)}</span>
+    <span class="mono">${escapeHtml(short)}</span>
+    <span class="hint">${escapeHtml(createdAt)}</span>
+    <button class="btn btn--ghost" data-home-view-run="1" data-ws-id="${escapeHtml(wsId)}" data-run-id="${escapeHtml(runId)}">${escapeHtml(
+          t('label.view')
+        )}</button>
+    <button class="btn btn--ghost" data-home-ignore-run="1" data-ws-id="${escapeHtml(wsId)}">${escapeHtml(
+          t('label.ignore')
+        )}</button>
+  </div>
+  <div class="homeCard__meta mono">${escapeHtml(err ? `error=${err}` : `turnIndex=${String(run.turnIndex ?? 0)}`)}</div>
+</div>`;
+      })();
+
+      const askHtml = (() => {
+        if (!token) return `<div class="hint">${escapeHtml(t('home.ask_need_token'))}</div>`;
+        if (!threads.length) return `<div class="hint">${escapeHtml(t('home.no_threads'))}</div>`;
+
+        return `<div class="homeThreads">
+${threads
+  .map((th) => {
+    const thId = String(th?.id || '').trim();
+    const title = String(th?.title || '').trim() || '(untitled)';
+    const lastAt = formatTs(th?.lastActiveAt || th?.updatedAt || th?.createdAt);
+    const busy = Boolean(th?.busy) || Number(th?.queue?.running || 0) > 0;
+    const queued = Number(th?.queue?.queued || 0) > 0;
+    const qErr = Number(th?.queue?.error || 0) > 0;
+    const lastErr = th?.queue?.lastError?.error ? String(th.queue.lastError.error) : '';
+    const lastAssistantErr = th?.lastAssistant?.error ? String(th.lastAssistant.error) : '';
+    const attnCls = homeGetAskAttentionClass(th);
+
+    const pills = [];
+    if (qErr) {
+      pills.push(`<span class="pill pill--status pill--status-failed">${escapeHtml(t('ask.queue_status_error'))}</span>`);
+      if (lastErr) pills.push(`<span class="pill pill--status pill--status-failed">${escapeHtml(lastErr)}</span>`);
+    } else if (busy) {
+      pills.push(`<span class="pill pill--status pill--status-sending">${escapeHtml(t('ask.status_sending'))}</span>`);
+    } else if (queued) {
+      pills.push(`<span class="pill pill--status pill--status-recovering">${escapeHtml(t('ask.queue_status_queued'))}</span>`);
+    } else {
+      pills.push(`<span class="pill pill--muted">${escapeHtml(t('ask.status_idle'))}</span>`);
+    }
+
+    if (lastAssistantErr) pills.push(`<span class="pill pill--status pill--status-failed">${escapeHtml(lastAssistantErr)}</span>`);
+
+    const preview = th?.lastAssistant?.text ? String(th.lastAssistant.text).trim() : th?.lastMessage?.text ? String(th.lastMessage.text).trim() : '';
+
+    return `<div class="homeItem${attnCls}" data-home-ask-thread="${escapeHtml(thId)}" data-ws-id="${escapeHtml(wsId)}">
+  <div class="row">
+    <div class="homeCard__title">${escapeHtml(title)}</div>
+    <div class="pill-group">${pills.join('')}</div>
+    <div class="hint">${escapeHtml(lastAt)}</div>
+    <button class="btn btn--ghost" data-home-view-ask="1" data-ws-id="${escapeHtml(wsId)}" data-thread-id="${escapeHtml(thId)}">${escapeHtml(
+      t('label.view')
+    )}</button>
+    <button class="btn btn--ghost" data-home-ignore-ask="1" data-thread-id="${escapeHtml(thId)}">${escapeHtml(t('label.ignore'))}</button>
+  </div>
+  <div class="homeCard__meta">${escapeHtml(preview ? previewLines(preview, 2) : '')}</div>
+</div>`;
+  })
+  .join('\n')}
+</div>`;
+      })();
+
+      return `<div class="card">
+  <div class="row">
+    <div class="homeCard__title">${escapeHtml(ws.name || wsId)}</div>
+    <button class="btn btn--ghost" data-home-open-ws="1" data-ws-id="${escapeHtml(wsId)}">${escapeHtml(t('label.dashboard'))}</button>
+  </div>
+  <div class="homeCard__meta mono">${escapeHtml(ws.rootPath || '')}</div>
+
+  <div class="homeSection">
+    <div class="homeSection__title">${escapeHtml(t('home.section_run'))}</div>
+    ${runHtml}
+  </div>
+
+  <div class="homeSection">
+    <div class="homeSection__title">${escapeHtml(t('home.section_ask'))}</div>
+    ${askHtml}
+  </div>
+</div>`;
+    })
+    .join('\n');
+
+  renderHomeStatus();
+}
+
+function renderHomeConfigList() {
+  const host = q('#homeConfigList');
+  if (!host) return;
+  const ordered = orderWorkspacesByMru(state.workspaces || [], getStoredWorkspaceMruIds());
+  if (!ordered.length) {
+    host.innerHTML = `<div class="hint">${escapeHtml(t('placeholder.no_workspaces'))}</div>`;
+    return;
+  }
+  host.innerHTML = ordered
+    .map((ws) => {
+      const wsId = String(ws.id || '').trim();
+      const hidden = homeIsWorkspaceHidden(wsId);
+      return `<label class="list__item">
+  <input type="checkbox" data-home-hide-toggle="${escapeHtml(wsId)}" ${hidden ? 'checked' : ''} />
+  <span class="list__title">${escapeHtml(ws.name || wsId)}</span>
+  <span class="list__meta mono">${escapeHtml(ws.rootPath || '')}</span>
+</label>`;
+    })
+    .join('\n');
+}
+
+function openHomeConfigModal() {
+  const modal = mustGetEl('#homeConfigModal');
+  renderHomeConfigList();
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeHomeConfigModal() {
+  const modal = mustGetEl('#homeConfigModal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function homeFindSummaryByWorkspaceId(workspaceId) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId) return null;
+  return (state.homeSummaries || []).find((s) => String(s?.workspaceId || '').trim() === wsId) || null;
+}
+
+function homeFindAskThreadById(threadId) {
+  const id = String(threadId || '').trim();
+  if (!id) return null;
+  for (const s of state.homeSummaries || []) {
+    const threads = Array.isArray(s?.threads) ? s.threads : [];
+    const found = threads.find((t) => String(t?.id || '').trim() === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+async function homeOpenWorkspaceDashboard(workspaceId) {
+  const wsId = String(workspaceId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_ID_REQUIRED');
+  setPage('dashboard', { skipEnsure: true });
+  await applyWorkspaceChange(wsId, { context: 'HOME_OPEN_WS' });
+}
+
+async function homeOpenLatestRun(workspaceId, runId) {
+  const wsId = String(workspaceId || '').trim();
+  const id = String(runId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_ID_REQUIRED');
+  if (!id) throw new Error('RUN_NOT_FOUND');
+
+  const summary = homeFindSummaryByWorkspaceId(wsId);
+  if (summary?.latestRun && String(summary.latestRun.id || '') === id) {
+    homeMarkRunSeen(wsId, summary.latestRun);
+  }
+
+  setPage('dashboard', { skipEnsure: true });
+  await applyWorkspaceChange(wsId, { context: 'HOME_VIEW_RUN' });
+  await selectRun(id);
+}
+
+async function homeOpenAskThread(workspaceId, threadId) {
+  const wsId = String(workspaceId || '').trim();
+  const id = String(threadId || '').trim();
+  if (!wsId) throw new Error('WORKSPACE_ID_REQUIRED');
+  if (!id) throw new Error('ASK_THREAD_NOT_FOUND');
+
+  const th = homeFindAskThreadById(id);
+  if (th) homeMarkAskSeen(th);
+
+  setPage('ask', { skipEnsure: true });
+  await applyWorkspaceChange(wsId, { context: 'HOME_VIEW_ASK' });
+  await selectAskThreadById(id);
 }
 
 function renderWorkspacesSelect() {
@@ -3003,10 +3413,7 @@ function fillAllowedRootsEditorFromHealth({ overwrite = false } = {}) {
   const editor = q('#allowedRootsEditor');
   if (!editor) return;
   const roots = Array.isArray(state.health?.allowedWorkspaceRoots) ? state.health.allowedWorkspaceRoots : [];
-  const next = roots
-    .map((r) => String(r || '').trim())
-    .filter(Boolean)
-    .join('\n');
+  const next = roots.map((r) => String(r || '').trim()).filter(Boolean).join('\n');
   if (!overwrite && String(editor.value || '').trim()) return;
   editor.value = next;
 }
@@ -3047,6 +3454,100 @@ async function loadWorkspaces() {
   const data = await fetchJson('/api/workspaces');
   state.workspaces = data.items || [];
   renderWorkspacesSelect();
+  renderHomeConfigList();
+  renderHome();
+}
+
+function clearHomePoll() {
+  state.homePollToken = (state.homePollToken || 0) + 1;
+  if (!state.homePollTimer) return;
+  clearTimeout(state.homePollTimer);
+  state.homePollTimer = null;
+}
+
+function ensureHomePoll() {
+  if (state.page !== 'home') {
+    clearHomePoll();
+    return;
+  }
+  if (state.homePollTimer) return;
+
+  const token = state.homePollToken;
+
+  const tick = async () => {
+    if (state.homePollToken !== token) return;
+    if (state.page !== 'home') {
+      clearHomePoll();
+      return;
+    }
+    if (document.visibilityState !== 'hidden') {
+      try {
+        await loadHomeData({ context: 'HOME_POLL', silent: true });
+      } catch {}
+    }
+    if (state.homePollToken !== token) return;
+    state.homePollTimer = setTimeout(tick, HOME_POLL_INTERVAL_MS);
+  };
+
+  state.homePollTimer = setTimeout(tick, HOME_POLL_INTERVAL_MS);
+}
+
+async function loadHomeData(options = {}) {
+  const context = String(options?.context || 'HOME');
+  const silent = Boolean(options?.silent);
+
+  state.homeLoading = true;
+  state.homeError = '';
+  renderHomeStatus();
+
+  let summary = null;
+  try {
+    summary = await fetchJson('/api/home/summary');
+  } catch (err) {
+    state.homeLoading = false;
+    state.homeError = formatApiError(err, `GET /api/home/summary (${context})`);
+    renderHomeStatus();
+    if (!silent) throw err;
+    return;
+  }
+
+  const runsByWsId = new Map();
+  for (const it of summary?.items || []) {
+    const wsId = String(it?.workspaceId || '').trim();
+    if (!wsId) continue;
+    runsByWsId.set(wsId, it?.latestRun || null);
+  }
+
+  const token = getAdminToken();
+  let ask = null;
+  if (token) {
+    try {
+      ask = await fetchJson('/api/home/ask', { headers: { ...authHeaders() } });
+    } catch (err) {
+      // Keep runs visible even if token is wrong/expired.
+      ask = null;
+      state.homeError = formatApiError(err, `GET /api/home/ask (${context})`);
+    }
+  }
+
+  const threadsByWsId = new Map();
+  for (const it of ask?.items || []) {
+    const wsId = String(it?.workspaceId || '').trim();
+    if (!wsId) continue;
+    threadsByWsId.set(wsId, Array.isArray(it?.threads) ? it.threads : []);
+  }
+
+  state.homeSummaries = (state.workspaces || []).map((ws) => {
+    const wsId = String(ws?.id || '').trim();
+    return {
+      workspaceId: wsId,
+      latestRun: runsByWsId.get(wsId) || null,
+      threads: threadsByWsId.get(wsId) || [],
+    };
+  });
+  state.homeLastLoadedAt = Date.now();
+  state.homeLoading = false;
+  renderHome();
 }
 
 async function loadSessions(workspaceId) {
@@ -4805,6 +5306,100 @@ async function onWorkspaceChanged() {
   return ensureWorkspaceDataForCurrentPage();
 }
 
+async function applyWorkspaceChange(nextWorkspaceId, options = {}) {
+  const next = nextWorkspaceId || null;
+  const prev = state.workspaceId;
+  const context = String(options?.context || 'WORKSPACE_CHANGE');
+
+  if (state.page === 'files' && next !== prev) {
+    if (!confirmDiscardFilesChangesIfAny()) return { changed: false, canceled: true };
+  }
+
+  state.workspaceId = next;
+  renderWorkspacesSelect();
+
+  state.managerSessionId = null;
+  state.executorSessionId = null;
+  state.sessions = [];
+  state.rollovers = [];
+  state.runId = null;
+  state.runDetail = null;
+  state.runs = [];
+  state.historyRunId = null;
+  state.historyRunDetail = null;
+  state.mdKind = 'plan';
+  state.mdPath = '';
+  state.mdLoadedPath = '';
+  state.mdTruncated = false;
+  state.planText = '';
+  state.digestText = '';
+  state.events = [];
+  state.filesDir = '';
+  state.filesItems = [];
+  state.filesTruncated = false;
+  state.filesIncludeHidden = false;
+  state.filesReadOnly = true;
+  state.filesSearch = '';
+  state.filesSelectedRelPath = null;
+  state.filesSelectedKind = null;
+  state.filesSelectedLoading = false;
+  state.filesSelectedError = '';
+  state.filesSelectedText = '';
+  state.filesSelectedTextOriginal = '';
+  state.filesSelectedTextTruncated = false;
+  state.filesSelectedMtimeMs = null;
+  state.filesSelectedSizeBytes = null;
+  state.filesSelectedMode = null;
+  state.filesSaving = false;
+  clearFilesImageUrl();
+  state.askThreadId = null;
+  state.askThreads = [];
+  state.askThreadsSig = null;
+  state.askMessages = [];
+  state.askMessagesSig = null;
+  state.askMessagesTail = true;
+  state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
+  state.askMessagesLoading = false;
+  state.askMessagesLoadToken = 0;
+  state.askMessagesPrependScrollFix = false;
+  state.askMessageOpen = {};
+  state.askQueueItems = [];
+  state.askQueueSig = null;
+  state.askQueueItemOpen = {};
+  state.askQueueEditId = null;
+  state.askQueueEditText = '';
+  state.askSendInFlight = false;
+  state.askRecovering = false;
+  state.askForceScrollToBottom = false;
+  state.askDebugText = '';
+
+  clearAskPoll();
+  closeAskSse();
+  closeEventSource();
+  renderSessions();
+  renderRollovers();
+  renderRuns();
+  renderRunHeader();
+  renderFeedsFromRunDetail();
+  renderEvents();
+  renderMdControls();
+  renderPlanText();
+  renderDigestText();
+  renderHistory();
+  renderHistoryDetail();
+  renderFiles();
+  renderAskThreads();
+  renderAskMessages();
+  renderAskQueue();
+  renderAskThread();
+  renderHomeConfigList();
+  renderHome();
+
+  await onWorkspaceChanged();
+
+  return { changed: true, canceled: false };
+}
+
 function toast(err) {
   const code =
     typeof err === 'string'
@@ -4819,6 +5414,8 @@ function rerenderAll() {
   applyDomI18n();
   renderHealth();
   renderWorkspacesSelect();
+  renderHomeConfigList();
+  renderHome();
   renderSessions();
   renderRollovers();
   renderRuns();
@@ -4854,15 +5451,23 @@ function initI18n() {
 function initTokenBox() {
   const input = q('#adminToken');
   input.value = getAdminToken();
+  let homeTokenDebounceTimer = null;
   input.addEventListener('input', () => {
     setAdminToken(input.value);
     renderFiles();
     renderAskThreads();
     renderAskThread();
+    renderHome();
     ensureAskSse();
     // Only refresh token-sensitive pages; avoid reloading run/session lists on every keystroke.
     if (state.workspaceId && (state.page === 'ask' || state.page === 'files')) {
       ensureWorkspaceDataForCurrentPage().catch(() => {});
+    }
+    clearTimeout(homeTokenDebounceTimer);
+    if (state.page === 'home') {
+      homeTokenDebounceTimer = setTimeout(() => {
+        loadHomeData({ context: 'TOKEN_CHANGE', silent: true }).catch(() => {});
+      }, 350);
     }
   });
 }
@@ -4896,94 +5501,118 @@ function initTabs() {
 }
 
 function initHandlers() {
-  q('#workspaceSelect').addEventListener('change', async (e) => {
-    const nextWorkspaceId = e.target.value || null;
-    if (state.page === 'files' && nextWorkspaceId !== state.workspaceId) {
-      if (!confirmDiscardFilesChangesIfAny()) {
-        e.target.value = state.workspaceId || '';
+  q('#workspaceSelect').addEventListener('change', (e) => {
+    const prevWorkspaceId = state.workspaceId;
+    applyWorkspaceChange(e.target.value || null, { context: 'UI_WORKSPACE_SELECT' })
+      .then((r) => {
+        if (r?.canceled) e.target.value = prevWorkspaceId || '';
+      })
+      .catch(toast);
+  });
+
+  const homeRefreshBtn = q('#homeRefreshBtn');
+  if (homeRefreshBtn) homeRefreshBtn.addEventListener('click', () => loadHomeData({ context: 'HOME_REFRESH' }).catch(toast));
+
+  const homeConfigBtn = q('#homeConfigBtn');
+  if (homeConfigBtn) {
+    homeConfigBtn.addEventListener('click', () => {
+      try {
+        openHomeConfigModal();
+      } catch (err) {
+        toast(err);
+      }
+    });
+  }
+
+  const homeList = q('#homeWorkspaceList');
+  if (homeList) {
+    homeList.addEventListener('click', (e) => {
+      const targetEl = eventTargetElement(e.target);
+      if (!targetEl) return;
+
+      const openWsBtn = targetEl.closest('[data-home-open-ws]');
+      if (openWsBtn) {
+        homeOpenWorkspaceDashboard(openWsBtn.dataset.wsId).catch(toast);
         return;
       }
-    }
 
-    state.workspaceId = nextWorkspaceId;
-    renderWorkspacesSelect();
+      const viewRunBtn = targetEl.closest('[data-home-view-run]');
+      if (viewRunBtn) {
+        homeOpenLatestRun(viewRunBtn.dataset.wsId, viewRunBtn.dataset.runId).catch(toast);
+        return;
+      }
 
-    state.managerSessionId = null;
-    state.executorSessionId = null;
-    state.sessions = [];
-    state.rollovers = [];
-    state.runId = null;
-    state.runDetail = null;
-    state.runs = [];
-    state.historyRunId = null;
-    state.historyRunDetail = null;
-    state.mdKind = 'plan';
-    state.mdPath = '';
-    state.mdLoadedPath = '';
-    state.mdTruncated = false;
-    state.planText = '';
-    state.digestText = '';
-    state.events = [];
-    state.filesDir = '';
-    state.filesItems = [];
-    state.filesTruncated = false;
-    state.filesIncludeHidden = false;
-    state.filesReadOnly = true;
-    state.filesSearch = '';
-    state.filesSelectedRelPath = null;
-    state.filesSelectedKind = null;
-    state.filesSelectedLoading = false;
-    state.filesSelectedError = '';
-    state.filesSelectedText = '';
-    state.filesSelectedTextOriginal = '';
-    state.filesSelectedTextTruncated = false;
-    state.filesSelectedMtimeMs = null;
-    state.filesSelectedSizeBytes = null;
-    state.filesSelectedMode = null;
-    state.filesSaving = false;
-    clearFilesImageUrl();
-    state.askThreadId = null;
-    state.askThreads = [];
-    state.askThreadsSig = null;
-    state.askMessages = [];
-    state.askMessagesSig = null;
-    state.askMessagesTail = true;
-    state.askMessagesLimit = ASK_MESSAGES_DEFAULT_TAIL_LIMIT;
-    state.askMessagesLoading = false;
-    state.askMessagesLoadToken = 0;
-    state.askMessagesPrependScrollFix = false;
-    state.askMessageOpen = {};
-    state.askQueueItems = [];
-    state.askQueueSig = null;
-    state.askQueueItemOpen = {};
-    state.askQueueEditId = null;
-    state.askQueueEditText = '';
-    state.askSendInFlight = false;
-    state.askRecovering = false;
-    state.askForceScrollToBottom = false;
-    state.askDebugText = '';
+      const ignoreRunBtn = targetEl.closest('[data-home-ignore-run]');
+      if (ignoreRunBtn) {
+        const wsId = ignoreRunBtn.dataset.wsId;
+        const summary = homeFindSummaryByWorkspaceId(wsId);
+        if (summary?.latestRun) homeMarkRunSeen(wsId, summary.latestRun);
+        renderHome();
+        return;
+      }
 
-    clearAskPoll();
-    closeAskSse();
-    closeEventSource();
-    renderSessions();
-    renderRollovers();
-    renderRuns();
-    renderRunHeader();
-    renderFeedsFromRunDetail();
-    renderEvents();
-    renderMdControls();
-    renderPlanText();
-    renderDigestText();
-    renderHistory();
-    renderHistoryDetail();
-    renderFiles();
-    renderAskThreads();
-    renderAskMessages();
-    renderAskQueue();
-    renderAskThread();
-    await onWorkspaceChanged();
-  });
+      const viewAskBtn = targetEl.closest('[data-home-view-ask]');
+      if (viewAskBtn) {
+        homeOpenAskThread(viewAskBtn.dataset.wsId, viewAskBtn.dataset.threadId).catch(toast);
+        return;
+      }
+
+      const ignoreAskBtn = targetEl.closest('[data-home-ignore-ask]');
+      if (ignoreAskBtn) {
+        const th = homeFindAskThreadById(ignoreAskBtn.dataset.threadId);
+        if (th) homeMarkAskSeen(th);
+        renderHome();
+      }
+    });
+  }
+
+  const homeConfigModal = q('#homeConfigModal');
+  if (homeConfigModal) {
+    homeConfigModal.addEventListener('click', (e) => {
+      if (e.target === homeConfigModal) closeHomeConfigModal();
+    });
+  }
+  const homeConfigClose = q('#homeConfigModalCloseBtn');
+  if (homeConfigClose) homeConfigClose.addEventListener('click', () => closeHomeConfigModal());
+  const homeConfigDone = q('#homeConfigModalDoneBtn');
+  if (homeConfigDone) homeConfigDone.addEventListener('click', () => closeHomeConfigModal());
+
+  const homeConfigShowAll = q('#homeConfigShowAllBtn');
+  if (homeConfigShowAll) {
+    homeConfigShowAll.addEventListener('click', () => {
+      state.homeHiddenWorkspaces = {};
+      persistHomeHiddenWorkspaces();
+      renderHomeConfigList();
+      renderHome();
+    });
+  }
+
+  const homeConfigHideAll = q('#homeConfigHideAllBtn');
+  if (homeConfigHideAll) {
+    homeConfigHideAll.addEventListener('click', () => {
+      const map = {};
+      for (const ws of state.workspaces || []) {
+        const wsId = String(ws?.id || '').trim();
+        if (wsId) map[wsId] = true;
+      }
+      state.homeHiddenWorkspaces = map;
+      persistHomeHiddenWorkspaces();
+      renderHomeConfigList();
+      renderHome();
+    });
+  }
+
+  const homeConfigList = q('#homeConfigList');
+  if (homeConfigList) {
+    homeConfigList.addEventListener('change', (e) => {
+      const targetEl = eventTargetElement(e.target);
+      if (!targetEl) return;
+      if (!targetEl.matches('input[data-home-hide-toggle]')) return;
+      const wsId = targetEl.dataset.homeHideToggle;
+      homeSetWorkspaceHidden(wsId, Boolean(targetEl.checked));
+      renderHome();
+    });
+  }
 
   const refreshAskIfVisible = () => {
     if (document.visibilityState === 'hidden') return;
@@ -4996,6 +5625,15 @@ function initHandlers() {
   document.addEventListener('visibilitychange', refreshAskIfVisible);
   window.addEventListener('focus', refreshAskIfVisible);
   window.addEventListener('online', refreshAskIfVisible);
+
+  const refreshHomeIfVisible = () => {
+    if (document.visibilityState === 'hidden') return;
+    if (state.page !== 'home') return;
+    loadHomeData({ context: 'HOME_VISIBLE', silent: true }).catch(() => {});
+  };
+  document.addEventListener('visibilitychange', refreshHomeIfVisible);
+  window.addEventListener('focus', refreshHomeIfVisible);
+  window.addEventListener('online', refreshHomeIfVisible);
 
   q('#addWorkspaceBtn').addEventListener('click', () => {
     try {
@@ -5328,6 +5966,7 @@ function initHandlers() {
 
 async function init() {
   loadAskLayoutPrefs();
+  loadHomePrefs();
   loadHistoryLayoutPrefs();
   initI18n();
   initTokenBox();
@@ -5339,6 +5978,10 @@ async function init() {
   await loadHealth();
   await loadCapabilities();
   await loadWorkspaces();
+
+  if (state.page === 'home') {
+    await loadHomeData({ context: 'INIT', silent: true }).catch(() => {});
+  }
 
   const preferredWorkspaceId = URL_INITIAL_WORKSPACE_ID || getStoredWorkspaceId();
   if (preferredWorkspaceId && state.workspaces.some((w) => w.id === preferredWorkspaceId)) {

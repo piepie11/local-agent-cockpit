@@ -10,6 +10,7 @@
   --accent: #1f6feb;
   --danger: #d1242f;
   --success: #238636;
+  --warning: #d29922;
 }
 
 @media (prefers-color-scheme: light) {
@@ -24,6 +25,7 @@
     --accent: #0969da;
     --danger: #cf222e;
     --success: #1f883d;
+    --warning: #bf8700;
   }
 }
 
@@ -129,6 +131,103 @@ body {
 
 .page {
   min-height: 60vh;
+}
+
+.homeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.homeCard__title {
+  font-weight: 900;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.homeCard__meta {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.homeSection {
+  margin-top: 10px;
+}
+
+.homeSection__title {
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.homeItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--card) 92%, #000);
+}
+
+.homeItem--attn-good {
+  border-color: color-mix(in srgb, var(--success) 60%, var(--border));
+  background: color-mix(in srgb, var(--success) 12%, var(--card));
+}
+
+.homeItem--attn-warn {
+  border-color: color-mix(in srgb, var(--warning) 60%, var(--border));
+  background: color-mix(in srgb, var(--warning) 10%, var(--card));
+}
+
+.homeItem--attn-bad {
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--border));
+  background: color-mix(in srgb, var(--danger) 10%, var(--card));
+}
+
+.homeThreads {
+  display: grid;
+  gap: 8px;
+}
+
+.homeThread {
+  width: 100%;
+  text-align: left;
+}
+
+.pill--run {
+  font-weight: 800;
+}
+
+.pill--run-running {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.pill--run-paused {
+  border-color: color-mix(in srgb, var(--warning) 55%, var(--border));
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 10%, var(--card));
+}
+
+.pill--run-done {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--border));
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--card));
+}
+
+.pill--run-error {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, var(--card));
+}
+
+.pill--run-stopped {
+  border-color: color-mix(in srgb, var(--muted) 40%, var(--border));
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 8%, var(--card));
 }
 
 .modal {

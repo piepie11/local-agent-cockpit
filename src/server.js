@@ -254,6 +254,66 @@ function createServer() {
     res.json({ items: store.listWorkspaces() });
   });
 
+  // Home page: lightweight summaries across all workspaces.
+  // - /api/home/summary: no ADMIN_TOKEN required (runs + workspace ids only)
+  // - /api/home/ask: ADMIN_TOKEN required (ask thread status + last messages)
+  app.get('/api/home/summary', (req, res) => {
+    const workspaces = store.listWorkspaces();
+    const items = workspaces.map((ws) => {
+      const runs = store.listRuns(ws.id, 1);
+      const latestRun = Array.isArray(runs) && runs.length ? runs[0] : null;
+      return { workspaceId: ws.id, latestRun };
+    });
+    res.json({ ok: true, ts: Date.now(), items });
+  });
+
+  app.get('/api/home/ask', requireAdmin({ config }), (req, res) => {
+    const workspaces = store.listWorkspaces();
+    const items = workspaces.map((ws) => {
+      const threads = store.listAskThreads(ws.id).map((t0) => {
+        const lastMsg = store.listAskMessagesTail(t0.id, 1)[0] || null;
+        const lastAssistant = store.getAskLastAssistantMessage(t0.id);
+        const counts = store.getAskQueueCounts(t0.id);
+        const lastQueueError = store.getAskLastQueueError(t0.id);
+        return {
+          ...t0,
+          busy: isAskThreadBusy(t0.id),
+          lastMessage: lastMsg
+            ? {
+                id: lastMsg.id,
+                role: lastMsg.role,
+                createdAt: lastMsg.createdAt,
+                text: truncateText(String(lastMsg.text || '').trim(), 260),
+              }
+            : null,
+          lastAssistant: lastAssistant
+            ? {
+                id: lastAssistant.id,
+                createdAt: lastAssistant.createdAt,
+                error: String(lastAssistant?.meta?.error || '').trim() || null,
+                text: truncateText(String(lastAssistant.text || '').trim(), 400),
+              }
+            : null,
+          queue: {
+            queued: Number(counts?.queued || 0),
+            running: Number(counts?.running || 0),
+            error: Number(counts?.error || 0),
+            lastError: lastQueueError
+              ? {
+                  id: lastQueueError.id,
+                  error: String(lastQueueError.error || '').trim() || 'ASK_QUEUE_ERROR',
+                  updatedAt: lastQueueError.updatedAt,
+                  endedAt: lastQueueError.endedAt,
+                }
+              : null,
+          },
+        };
+      });
+      return { workspaceId: ws.id, threads };
+    });
+    res.json({ ok: true, ts: Date.now(), items });
+  });
+
   app.get('/api/workspaces/:id/plan', (req, res) => {
     const ws = store.getWorkspace(req.params.id);
     if (!ws) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
@@ -875,7 +935,10 @@ function createServer() {
   app.get('/api/workspaces/:id/runs', (req, res) => {
     const ws = store.getWorkspace(req.params.id);
     if (!ws) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
-    res.json({ items: store.listRuns(req.params.id) });
+    const limitRaw = req.query?.limit;
+    const limit0 = Number(limitRaw);
+    const limit = Number.isFinite(limit0) && limit0 > 0 ? limit0 : null;
+    res.json({ items: store.listRuns(req.params.id, limit) });
   });
 
   app.post('/api/runs', requireAdmin({ config }), (req, res) => {
