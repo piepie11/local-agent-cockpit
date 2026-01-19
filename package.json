@@ -26,6 +26,7 @@
     "m7:ask:sse:e2e": "node scripts/m7_ask_sse_e2e.js",
     "m8:workspace:mru:e2e": "node scripts/m8_workspace_mru_e2e.js",
     "m9:home:e2e": "node scripts/m9_home_e2e.js",
+    "m10:doc_writer:e2e": "node scripts/m10_doc_writer_e2e.js",
     "m3:deep": "npm run m2:deep && npm run m3:capabilities && npm run m3:e2e:codex:resume && npm run m3:e2e:claude:resume && npm run m3:e2e:mixed:resume && npm run m3:e2e:rollover && npm run m4:ask:e2e && npm run m5:files:e2e",
     "m2:deep": "npm run m0:smoke && npm run m0:roundtrip && npm run m1:e2e:fake && npm run m1:e2e:codex && npm run m1:e2e:claude && npm run m2:api:e2e"
   },

@@ -4,6 +4,8 @@ const { randomUUID } = require('crypto');
 
 const { getProvider } = require('../providers/provider_registry');
 const { writeRunEnv } = require('../lib/run_env');
+const { isInside } = require('../http/paths');
+const { readTextFile } = require('../http/workspace_fs');
 
 function nowMs() {
   return Date.now();
@@ -24,6 +26,13 @@ function safeJsonParse(value, fallback) {
 function normalizeString(value) {
   const s = String(value ?? '').trim();
   return s ? s : null;
+}
+
+function normalizeDocKind(value) {
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!raw) return null;
+  if (raw === 'plan' || raw === 'convention' || raw === 'requirements') return raw;
+  throw new Error(`DOC_KIND_INVALID · docKind=${raw}`);
 }
 
 function truncateText(text, maxChars) {
@@ -57,12 +66,145 @@ function resolveAskSystemPromptPath(configObj) {
   return path.join(process.cwd(), 'prompts', 'ask_system.md');
 }
 
-function buildAskPrompt({ systemPrompt, isSeed, userText, workspace }) {
-  const base = `ASK_MODE: true\nWORKSPACE_ROOT: ${workspace.rootPath}\nWORKSPACE_NAME: ${workspace.name}\n`;
-  if (isSeed) {
-    return `${systemPrompt}\n\n${base}\nUSER:\n${userText}\n`;
+function resolveDocWriterSystemPromptPath() {
+  return path.join(process.cwd(), 'prompts', 'doc_writer_system.md');
+}
+
+function getWorkspaceDocTarget({ workspace, docKind }) {
+  const wsId = workspace?.id || '';
+  const root = workspace?.rootPath;
+  const kind = normalizeDocKind(docKind);
+  if (!kind) throw new Error(`DOC_KIND_REQUIRED · workspaceId=${wsId}`);
+
+  let absPath = '';
+  let field = '';
+  if (kind === 'plan') {
+    absPath = workspace?.planPath;
+    field = 'planPath';
+  } else if (kind === 'convention') {
+    absPath = workspace?.conventionPath;
+    field = 'conventionPath';
+  } else {
+    absPath = workspace?.requirementsPath;
+    field = 'requirementsPath';
   }
-  return `${base}\nUSER:\n${userText}\n`;
+
+  const absValue = String(absPath || '').trim();
+  if (!absValue) {
+    throw new Error(`DOC_PATH_REQUIRED · workspaceId=${wsId} · docKind=${kind} · field=${field}`);
+  }
+  if (!root || !isInside(root, absValue)) {
+    throw new Error(`DOC_PATH_OUTSIDE_WORKSPACE · workspaceId=${wsId} · docKind=${kind} · path=${absValue}`);
+  }
+  const rel = path.relative(root, absValue).replace(/\\/g, '/');
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`DOC_PATH_OUTSIDE_WORKSPACE · workspaceId=${wsId} · docKind=${kind} · path=${absValue}`);
+  }
+  return { absPath: absValue, relPath: rel, field };
+}
+
+function loadRequirementsContext(workspace) {
+  const wsId = workspace?.id || '';
+  const root = workspace?.rootPath;
+  const absValue = String(workspace?.requirementsPath || '').trim();
+  if (!absValue) {
+    throw new Error(`REQUIREMENTS_PATH_REQUIRED · workspaceId=${wsId} · docKind=plan · requirementsPath=${absValue}`);
+  }
+  if (!root || !isInside(root, absValue)) {
+    throw new Error(`PATH_OUTSIDE_WORKSPACE · workspaceId=${wsId} · docKind=plan · requirementsPath=${absValue}`);
+  }
+  const rel = path.relative(root, absValue).replace(/\\/g, '/');
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`PATH_OUTSIDE_WORKSPACE · workspaceId=${wsId} · docKind=plan · requirementsPath=${absValue}`);
+  }
+  try {
+    const data = readTextFile({ rootPath: root, relFilePath: rel, includeHidden: true, maxChars: 200_000 });
+    const content = String(data.content || '');
+    if (!content.trim()) {
+      throw new Error('REQUIREMENTS_CONTENT_EMPTY');
+    }
+    return { content: data.content, truncated: Boolean(data.truncated), relPath: rel, absPath: absValue };
+  } catch (err) {
+    throw new Error(
+      `REQUIREMENTS_READ_FAILED · workspaceId=${wsId} · docKind=plan · requirementsPath=${absValue} · ${String(
+        err.message || err
+      )}`
+    );
+  }
+}
+
+function resolveConventionTemplateCandidates() {
+  const candidates = [];
+  const envPath = normalizeString(process.env.DOC_WRITER_CONVENTION_TEMPLATE_PATH);
+  if (envPath) {
+    candidates.push({ source: 'DOC_WRITER_CONVENTION_TEMPLATE_PATH', path: path.resolve(envPath) });
+  }
+  candidates.push({
+    source: 'doc_writer_convention_template',
+    path: path.join(process.cwd(), 'docs', 'templates', 'doc_writer_convention_template.md'),
+  });
+  candidates.push({
+    source: 'workspace_约定',
+    path: path.join(process.cwd(), 'docs', 'templates', 'workspace_约定.md'),
+  });
+  return candidates;
+}
+
+function loadConventionTemplate({ workspaceId }) {
+  const tried = [];
+  for (const candidate of resolveConventionTemplateCandidates()) {
+    const targetPath = candidate.path;
+    try {
+      if (!fs.existsSync(targetPath)) {
+        tried.push(`${candidate.source}=${targetPath} (missing)`);
+        continue;
+      }
+      const content = readText(targetPath);
+      if (!String(content || '').trim()) throw new Error('TEMPLATE_EMPTY');
+      return { content, sourcePath: targetPath };
+    } catch (err) {
+      tried.push(`${candidate.source}=${targetPath} (${String(err.message || err)})`);
+    }
+  }
+  throw new Error(`CONVENTION_TEMPLATE_LOAD_FAILED 路 workspaceId=${workspaceId} 路 tried=${tried.join(' | ')}`);
+}
+
+function buildConventionTemplateBlock({ content, sourcePath }) {
+  const truncated = truncateText(content, 80_000);
+  return `TEMPLATE_REFERENCE_CONVENTION:\nSOURCE: ${sourcePath}\n${truncated}`;
+}
+
+function buildDocContentRequirements(docKind) {
+  if (docKind === 'requirements') {
+    return 'Capture scope, user goals, constraints, assumptions, and acceptance criteria; keep items testable.';
+  }
+  if (docKind === 'convention') {
+    return 'Define coding standards, structure, naming, and workflow practices; keep rules consistent and explicit.';
+  }
+  return 'Make the plan detailed and actionable: goals, milestones, tasks, risks, and validation steps.';
+}
+
+function buildDocPrefix({ docKind, targetAbs, targetRel }) {
+  const contentReq = buildDocContentRequirements(docKind);
+  return [
+    'DOC_MODE: true',
+    `DOC_KIND: ${docKind}`,
+    `TARGET_FILE_ABS: ${targetAbs}`,
+    `TARGET_FILE_REL: ${targetRel}`,
+    'WRITE_POLICY: only edit target file',
+    `CONTENT_REQUIREMENTS: ${contentReq}`,
+  ].join('\n');
+}
+
+function buildAskPrompt({ systemPrompt, isSeed, userText, workspace, docPrefix, docContext }) {
+  const base = `ASK_MODE: true\nWORKSPACE_ROOT: ${workspace.rootPath}\nWORKSPACE_NAME: ${workspace.name}\n`;
+  const parts = [];
+  if (isSeed && systemPrompt) parts.push(String(systemPrompt).trim());
+  parts.push(base.trim());
+  if (docPrefix) parts.push(String(docPrefix).trim());
+  if (docContext) parts.push(String(docContext).trim());
+  parts.push(`USER:\n${userText}\n`);
+  return parts.filter(Boolean).join('\n\n');
 }
 
 function validateProvider(name) {
@@ -129,8 +271,31 @@ async function prepareAskSend({ store, config, threadId, userText }) {
   const sandbox = normalizeString(threadCfg?.sandbox) || 'read-only';
   const model = normalizeString(threadCfg?.model);
 
+  const docKind = normalizeDocKind(threadCfg?.docKind);
   const systemPromptPath = resolveAskSystemPromptPath(threadCfg);
-  const systemPrompt = fs.existsSync(systemPromptPath) ? readText(systemPromptPath) : '';
+  let systemPrompt = fs.existsSync(systemPromptPath) ? readText(systemPromptPath) : '';
+  let docPrefix = '';
+  let docContext = '';
+
+  if (docKind) {
+    const docPromptPath = resolveDocWriterSystemPromptPath();
+    if (!fs.existsSync(docPromptPath)) {
+      throw new Error(`DOC_WRITER_PROMPT_NOT_FOUND · path=${docPromptPath}`);
+    }
+    systemPrompt = readText(docPromptPath);
+
+    const target = getWorkspaceDocTarget({ workspace, docKind });
+    docPrefix = buildDocPrefix({ docKind, targetAbs: target.absPath, targetRel: target.relPath });
+
+    if (docKind === 'plan') {
+      const req = loadRequirementsContext(workspace);
+      docContext = `REQUIREMENTS_CONTEXT:\n${req.content}`;
+    }
+    if (docKind === 'convention') {
+      const tpl = loadConventionTemplate({ workspaceId: workspace.id });
+      docContext = buildConventionTemplateBlock(tpl);
+    }
+  }
 
   const outDir = path.join(config.runsDir, 'ask', workspace.id, thread.id, `msg-${timestampForDir()}`);
   ensureDir(outDir);
@@ -143,7 +308,7 @@ async function prepareAskSend({ store, config, threadId, userText }) {
 
   const resumeId = normalizeString(thread.providerSessionId);
   const isSeed = !resumeId;
-  const prompt = buildAskPrompt({ systemPrompt, isSeed, userText: text, workspace });
+  const prompt = buildAskPrompt({ systemPrompt, isSeed, userText: text, workspace, docPrefix, docContext });
   fs.writeFileSync(path.join(outDir, 'prompt.txt'), prompt, 'utf-8');
 
   const userMsg = store.createAskMessage({

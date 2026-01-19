@@ -34,12 +34,23 @@ class Store {
         this.db.prepare(`UPDATE workspaces SET conventionPath = ? WHERE id = ?`).run(p, row.id);
       }
     }
+    if (!cols.includes('requirementsPath')) {
+      this.db.exec(`ALTER TABLE workspaces ADD COLUMN requirementsPath TEXT NOT NULL DEFAULT ''`);
+    }
+    const reqRows = this.db.prepare(`SELECT id, rootPath, requirementsPath FROM workspaces`).all();
+    for (const row of reqRows) {
+      const current = String(row.requirementsPath ?? '').trim();
+      if (current) continue;
+      const p = path.join(row.rootPath, '需求.md');
+      this.db.prepare(`UPDATE workspaces SET requirementsPath = ? WHERE id = ?`).run(p, row.id);
+    }
+
   }
 
   listWorkspaces() {
     return this.db
       .prepare(
-        `SELECT id, name, rootPath, planPath, conventionPath, createdAt, updatedAt
+        `SELECT id, name, rootPath, planPath, conventionPath, requirementsPath, createdAt, updatedAt
          FROM workspaces
          ORDER BY updatedAt DESC`
       )
@@ -49,21 +60,21 @@ class Store {
   getWorkspace(id) {
     return this.db
       .prepare(
-        `SELECT id, name, rootPath, planPath, conventionPath, createdAt, updatedAt
+        `SELECT id, name, rootPath, planPath, conventionPath, requirementsPath, createdAt, updatedAt
          FROM workspaces
          WHERE id = ?`
       )
       .get(id);
   }
 
-  createWorkspace({ id = randomUUID(), name, rootPath, planPath, conventionPath = '' }) {
+  createWorkspace({ id = randomUUID(), name, rootPath, planPath, conventionPath = '', requirementsPath = '' }) {
     const ts = nowMs();
     this.db
       .prepare(
-        `INSERT INTO workspaces (id, name, rootPath, planPath, conventionPath, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO workspaces (id, name, rootPath, planPath, conventionPath, requirementsPath, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(id, name, rootPath, planPath, conventionPath, ts, ts);
+      .run(id, name, rootPath, planPath, conventionPath, requirementsPath, ts, ts);
     return this.getWorkspace(id);
   }
 
@@ -75,15 +86,16 @@ class Store {
       rootPath: patch.rootPath ?? current.rootPath,
       planPath: patch.planPath ?? current.planPath,
       conventionPath: patch.conventionPath ?? current.conventionPath,
+      requirementsPath: patch.requirementsPath ?? current.requirementsPath,
     };
     const ts = nowMs();
     this.db
       .prepare(
         `UPDATE workspaces
-         SET name = ?, rootPath = ?, planPath = ?, conventionPath = ?, updatedAt = ?
+         SET name = ?, rootPath = ?, planPath = ?, conventionPath = ?, requirementsPath = ?, updatedAt = ?
          WHERE id = ?`
       )
-      .run(next.name, next.rootPath, next.planPath, next.conventionPath, ts, id);
+      .run(next.name, next.rootPath, next.planPath, next.conventionPath, next.requirementsPath, ts, id);
     return this.getWorkspace(id);
   }
 

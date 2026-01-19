@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
   rootPath TEXT NOT NULL,
   planPath TEXT NOT NULL,
   conventionPath TEXT NOT NULL DEFAULT '',
+  requirementsPath TEXT NOT NULL DEFAULT '',
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
 );

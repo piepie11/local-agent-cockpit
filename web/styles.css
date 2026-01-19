@@ -447,6 +447,22 @@ body {
   }
 }
 
+#docsThreadsPanel,
+#docsChatPanel,
+#docsConfigPanel {
+  display: grid;
+  gap: 10px;
+}
+
+.docsChatPlaceholder {
+  min-height: 200px;
+}
+
+.docsPreview {
+  min-height: 220px;
+  max-height: 50vh;
+}
+
 .filesGrid {
   display: grid;
   grid-template-columns: 1fr;

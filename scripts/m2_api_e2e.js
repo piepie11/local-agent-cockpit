@@ -149,7 +149,9 @@ async function main() {
   fs.mkdirSync(notAllowedRoot, { recursive: true });
   fs.writeFileSync(path.join(wsRoot1, 'plan.md'), '# ws1 plan\n', 'utf-8');
   fs.writeFileSync(path.join(wsRoot1, 'convention.md'), '# ws1 convention\n', 'utf-8');
+  fs.writeFileSync(path.join(wsRoot1, 'requirements.md'), '# ws1 requirements\n', 'utf-8');
   fs.mkdirSync(path.join(wsRoot1, 'docs'), { recursive: true });
+  fs.writeFileSync(path.join(wsRoot1, 'docs', 'requirements_alt.md'), '# ws1 requirements alt\n', 'utf-8');
   fs.writeFileSync(path.join(wsRoot1, 'docs', 'notes.md'), '# ws1 notes\n', 'utf-8');
   fs.writeFileSync(path.join(wsRoot1, 'not_markdown.txt'), 'x\n', 'utf-8');
   fs.writeFileSync(path.join(wsRoot2, 'plan.md'), '# ws2 plan\n', 'utf-8');
@@ -204,11 +206,21 @@ async function main() {
       {
         method: 'POST',
         headers: jsonHeaders(token),
-        body: JSON.stringify({ name: 'ws1', rootPath: wsRoot1, conventionPath: 'convention.md' }),
+        body: JSON.stringify({
+          name: 'ws1',
+          rootPath: wsRoot1,
+          conventionPath: 'convention.md',
+          requirementsPath: 'requirements.md',
+        }),
       },
       201
     );
     assert(ws1.body.id, 'workspace id missing');
+    const expectedReqPath = path.join(wsRoot1, 'requirements.md');
+    assert(
+      ws1.body.requirementsPath === expectedReqPath,
+      `expected requirementsPath=${expectedReqPath}, got ${ws1.body.requirementsPath}`
+    );
 
     await fetchJsonExpect(
       baseUrl,
@@ -309,6 +321,52 @@ async function main() {
     // convention endpoint
     const convention = await fetchJsonExpect(baseUrl, `/api/workspaces/${ws1.body.id}/convention`, {}, undefined);
     assert(String(convention.body.content || '').includes('# ws1 convention'), 'convention content mismatch');
+
+    // requirements endpoint
+    const requirements = await fetchJsonExpect(baseUrl, `/api/workspaces/${ws1.body.id}/requirements`, {}, undefined);
+    assert(
+      Object.prototype.hasOwnProperty.call(requirements.body, 'requirementsPath'),
+      'requirementsPath missing in requirements response'
+    );
+    assert(Object.prototype.hasOwnProperty.call(requirements.body, 'content'), 'content missing in requirements response');
+    assert(Object.prototype.hasOwnProperty.call(requirements.body, 'truncated'), 'truncated missing in requirements response');
+    assert(String(requirements.body.content || '').includes('# ws1 requirements'), 'requirements content mismatch');
+
+    // requirements path patch + read
+    const reqPatch = await fetchJsonExpect(
+      baseUrl,
+      `/api/workspaces/${encodeURIComponent(ws1.body.id)}`,
+      {
+        method: 'PATCH',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({ requirementsPath: 'docs/requirements_alt.md' }),
+      },
+      200
+    );
+    const expectedReqAlt = path.join(wsRoot1, 'docs', 'requirements_alt.md');
+    assert(
+      reqPatch.body.requirementsPath === expectedReqAlt,
+      `expected requirementsPath=${expectedReqAlt}, got ${reqPatch.body.requirementsPath}`
+    );
+    const requirementsAlt = await fetchJsonExpect(baseUrl, `/api/workspaces/${ws1.body.id}/requirements`, {}, undefined);
+    assert(String(requirementsAlt.body.content || '').includes('# ws1 requirements alt'), 'requirements alt content mismatch');
+
+    // requirements path outside workspace should fail
+    const reqOutside = await fetchJsonExpect(
+      baseUrl,
+      `/api/workspaces/${encodeURIComponent(ws1.body.id)}`,
+      {
+        method: 'PATCH',
+        headers: jsonHeaders(token),
+        body: JSON.stringify({ requirementsPath: '../ws2/plan.md' }),
+      },
+      400
+    );
+    assert(reqOutside.body.error === 'PATH_OUTSIDE_WORKSPACE', `expected PATH_OUTSIDE_WORKSPACE, got ${reqOutside.body.error}`);
+    assert(
+      reqOutside.body.field === 'requirementsPath',
+      `expected field=requirementsPath, got ${reqOutside.body.field}`
+    );
 
     // markdown endpoint (workspace-root relative paths only)
     const mdPlan = await fetchJsonExpect(
@@ -495,6 +553,18 @@ async function main() {
     const doneAfterResume = await pollRun(baseUrl, runIdStep, 15_000);
     assert(doneAfterResume.status === 'DONE', `expected DONE, got ${doneAfterResume.status}`);
     assert(doneAfterResume.turnIndex === 2, `expected turnIndex=2, got ${doneAfterResume.turnIndex}`);
+
+    // workspace runs endpoint supports limit (used by Home page summaries)
+    const runsAll = await fetchJsonExpect(baseUrl, `/api/workspaces/${encodeURIComponent(ws1.body.id)}/runs`, {}, 200);
+    assert(Array.isArray(runsAll.body.items), 'runs.items should be array');
+    assert(runsAll.body.items.length >= 1, 'expected >=1 run in workspace runs list');
+    const runs1 = await fetchJsonExpect(baseUrl, `/api/workspaces/${encodeURIComponent(ws1.body.id)}/runs?limit=1`, {}, 200);
+    assert(Array.isArray(runs1.body.items), 'runs?limit=1 items should be array');
+    assert(runs1.body.items.length === 1, `expected runs?limit=1 to return 1 item, got ${runs1.body.items.length}`);
+    assert(
+      runs1.body.items[0].id === runsAll.body.items[0].id,
+      `expected runs?limit=1 first id to match full list first id (${runs1.body.items[0].id} vs ${runsAll.body.items[0].id})`
+    );
 
     // run_env.json should be written per run (约定.md 7.4)
     const runEnvPath = path.join(runsDir, ws1.body.id, runIdStep, 'run_env.json');

@@ -317,6 +317,9 @@ function createServer() {
   app.get('/api/workspaces/:id/plan', (req, res) => {
     const ws = store.getWorkspace(req.params.id);
     if (!ws) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+    if (!isInside(ws.rootPath, ws.planPath)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'planPath', path: ws.planPath });
+    }
     try {
       const content = fs.readFileSync(ws.planPath, 'utf-8');
       const maxChars = 400_000;
@@ -333,6 +336,9 @@ function createServer() {
   app.get('/api/workspaces/:id/convention', (req, res) => {
     const ws = store.getWorkspace(req.params.id);
     if (!ws) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+    if (!isInside(ws.rootPath, ws.conventionPath)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'conventionPath', path: ws.conventionPath });
+    }
     try {
       const content = fs.readFileSync(ws.conventionPath, 'utf-8');
       const maxChars = 400_000;
@@ -343,6 +349,30 @@ function createServer() {
       });
     } catch (err) {
       res.status(500).json({ error: 'CONVENTION_READ_FAILED' });
+    }
+  });
+
+  app.get('/api/workspaces/:id/requirements', (req, res) => {
+    const ws = store.getWorkspace(req.params.id);
+    if (!ws) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+    if (!isInside(ws.rootPath, ws.requirementsPath)) {
+      return res
+        .status(400)
+        .json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'requirementsPath', path: ws.requirementsPath });
+    }
+    try {
+      const content = fs.readFileSync(ws.requirementsPath, 'utf-8');
+      const maxChars = 400_000;
+      res.json({
+        requirementsPath: ws.requirementsPath,
+        truncated: content.length > maxChars,
+        content: content.length > maxChars ? `${content.slice(0, maxChars)}\n...(truncated)` : content,
+      });
+    } catch (err) {
+      if (String(err?.code || '') === 'ENOENT') {
+        return res.status(404).json({ error: 'FILE_NOT_FOUND', requirementsPath: ws.requirementsPath });
+      }
+      res.status(500).json({ error: 'REQUIREMENTS_READ_FAILED', requirementsPath: ws.requirementsPath });
     }
   });
 
@@ -539,6 +569,7 @@ function createServer() {
     const rootPath = String(req.body?.rootPath || '').trim();
     const planPath = String(req.body?.planPath || '').trim();
     const conventionPath = String(req.body?.conventionPath || '').trim();
+    const requirementsPath = String(req.body?.requirementsPath || '').trim();
 
     if (!name) return res.status(400).json({ error: 'NAME_REQUIRED' });
     if (!rootPath) return res.status(400).json({ error: 'ROOT_PATH_REQUIRED' });
@@ -553,11 +584,22 @@ function createServer() {
 
     const absPlan = resolveWorkspaceFilePath(absRoot, planPath, 'plan.md');
     const absConvention = resolveWorkspaceFilePath(absRoot, conventionPath, '约定.md');
+    const absRequirements = resolveWorkspaceFilePath(absRoot, requirementsPath, '需求.md');
+    if (!isInside(absRoot, absPlan)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'planPath', path: absPlan });
+    }
+    if (!isInside(absRoot, absConvention)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'conventionPath', path: absConvention });
+    }
+    if (!isInside(absRoot, absRequirements)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'requirementsPath', path: absRequirements });
+    }
     const workspace = store.createWorkspace({
       name,
       rootPath: absRoot,
       planPath: absPlan,
       conventionPath: absConvention,
+      requirementsPath: absRequirements,
     });
     res.status(201).json(workspace);
   });
@@ -575,6 +617,9 @@ function createServer() {
     if (req.body?.conventionPath !== undefined) {
       patch.conventionPath = resolveWorkspaceFilePath(rootForResolve, req.body.conventionPath, '约定.md');
     }
+    if (req.body?.requirementsPath !== undefined) {
+      patch.requirementsPath = resolveWorkspaceFilePath(rootForResolve, req.body.requirementsPath, '需求.md');
+    }
 
     if (patch.rootPath) {
       if (!isWorkspacePathAllowed(patch.rootPath, getAllowedWorkspaceRoots())) {
@@ -583,6 +628,19 @@ function createServer() {
       if (!fs.existsSync(patch.rootPath) || !fs.statSync(patch.rootPath).isDirectory()) {
         return res.status(400).json({ error: 'ROOT_PATH_NOT_DIR' });
       }
+    }
+    const nextRoot = patch.rootPath || current.rootPath;
+    const nextPlan = patch.planPath ?? current.planPath;
+    const nextConvention = patch.conventionPath ?? current.conventionPath;
+    const nextRequirements = patch.requirementsPath ?? current.requirementsPath;
+    if (!isInside(nextRoot, nextPlan)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'planPath', path: nextPlan });
+    }
+    if (!isInside(nextRoot, nextConvention)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'conventionPath', path: nextConvention });
+    }
+    if (!isInside(nextRoot, nextRequirements)) {
+      return res.status(400).json({ error: 'PATH_OUTSIDE_WORKSPACE', field: 'requirementsPath', path: nextRequirements });
     }
 
     const updated = store.updateWorkspace(id, patch);

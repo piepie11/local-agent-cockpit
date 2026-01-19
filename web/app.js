@@ -428,6 +428,7 @@ const I18N = {
     'nav.history': '历史',
     'nav.sessions': '会话',
     'nav.ask': 'Codex 用户窗口',
+    'nav.docs': '文档编写',
     'nav.files': '文件',
     'nav.settings': '设置',
 
@@ -442,6 +443,36 @@ const I18N = {
     'home.no_threads': '(暂无对话)',
     'home.ask_need_token': '需要 ADMIN_TOKEN 才能查看 Ask',
 
+    'docs.title': '文档编写',
+    'docs.hint': '占位：文档编写界面将在后续完善。',
+    'docs.tab.requirements': '需求',
+    'docs.tab.plan': '计划',
+    'docs.tab.convention': '约定',
+    'docs.threads_title': '线程',
+    'docs.thread_search_placeholder': '搜索线程…',
+    'docs.new_thread': '新建线程',
+    'docs.chat_placeholder': '文档编写对话区（占位）',
+    'docs.chat_empty': '(暂无内容)',
+    'docs.status_idle': '就绪',
+    'docs.status_sending': '编写中',
+    'docs.status_recovering': '恢复中',
+    'docs.status_failed': '失败',
+    'docs.elapsed_label': '耗时',
+    'docs.elapsed_unavailable': '无法获取耗时',
+    'docs.elapsed_pending': '等待完成',
+    'docs.usage_label': '用量',
+    'docs.usage_unavailable': '未提供用量',
+    'docs.send': '发送',
+    'docs.send_sending': '发送中',
+    'docs.stop': '停止',
+    'docs.input_placeholder': '输入文档编写指令…',
+    'docs.send_hint': '快捷键：Ctrl+Enter 发送。',
+    'docs.preview_title': '预览',
+    'docs.preview_refresh': '刷新',
+    'docs.preview_placeholder': '(预览占位)',
+    'docs.config_title': '配置',
+    'docs.debug': '调试',
+
     'workspace_modal.title': '新建工作区',
     'workspace_modal.name_label': '名称（可选）',
     'workspace_modal.name_placeholder': '名称（可选）',
@@ -451,6 +482,8 @@ const I18N = {
     'workspace_modal.plan_placeholder': 'plan.md',
     'workspace_modal.convention_label': 'conventionPath（默认 约定.md）',
     'workspace_modal.convention_placeholder': '约定.md',
+    'workspace_modal.requirements_label': 'requirementsPath（默认 需求.md）',
+    'workspace_modal.requirements_placeholder': '需求.md',
     'workspace_modal.allowed_title': '允许的 rootPath（来自 /api/health）',
     'workspace_modal.allowed_hint': 'rootPath 必须位于允许列表内，否则会 PATH_NOT_ALLOWED。',
     'workspace_modal.create': '创建',
@@ -458,6 +491,7 @@ const I18N = {
     'workspace_modal.save': '保存',
     'doc_modal.title_plan': '加载计划',
     'doc_modal.title_convention': '加载约定',
+    'doc_modal.title_requirements': '加载需求',
 
     'onboarding.title': '新手引导：先跑通最小闭环',
     'onboarding.subtitle': '按 3 步走通：设置 token → 新建 workspace → Start/Step',
@@ -481,8 +515,10 @@ const I18N = {
     'dash.kv.root': '根目录',
     'dash.kv.plan': '计划',
     'dash.kv.convention': '约定',
+    'dash.kv.requirements': '需求',
     'dash.load_plan': '加载计划',
     'dash.load_convention': '加载约定',
+    'dash.load_requirements': '加载需求',
     'dash.load_digest': '加载仓库摘要（repoDigest）',
     'dash.edit_workspace': '编辑工作区',
     'dash.sessions': '会话',
@@ -785,6 +821,7 @@ const I18N = {
     'nav.history': 'History',
     'nav.sessions': 'Sessions',
     'nav.ask': 'User Window',
+    'nav.docs': 'Doc Writer',
     'nav.files': 'Files',
     'nav.settings': 'Settings',
 
@@ -799,6 +836,36 @@ const I18N = {
     'home.no_threads': '(no threads)',
     'home.ask_need_token': 'ADMIN_TOKEN required for Ask',
 
+    'docs.title': 'Doc Writer',
+    'docs.hint': 'Placeholder: doc writer UI will be added later.',
+    'docs.tab.requirements': 'Requirements',
+    'docs.tab.plan': 'Plan',
+    'docs.tab.convention': 'Convention',
+    'docs.threads_title': 'Threads',
+    'docs.thread_search_placeholder': 'Search threads...',
+    'docs.new_thread': 'New thread',
+    'docs.chat_placeholder': 'Doc writer chat placeholder.',
+    'docs.chat_empty': '(empty)',
+    'docs.status_idle': 'Idle',
+    'docs.status_sending': 'Writing',
+    'docs.status_recovering': 'Recovering',
+    'docs.status_failed': 'Failed',
+    'docs.elapsed_label': 'Elapsed',
+    'docs.elapsed_unavailable': 'Elapsed unavailable',
+    'docs.elapsed_pending': 'Waiting for completion',
+    'docs.usage_label': 'Usage',
+    'docs.usage_unavailable': 'Usage unavailable',
+    'docs.send': 'Send',
+    'docs.send_sending': 'Sending',
+    'docs.stop': 'Stop',
+    'docs.input_placeholder': 'Write a doc instruction...',
+    'docs.send_hint': 'Shortcut: Ctrl+Enter to send.',
+    'docs.preview_title': 'Preview',
+    'docs.preview_refresh': 'Refresh',
+    'docs.preview_placeholder': '(preview placeholder)',
+    'docs.config_title': 'Config',
+    'docs.debug': 'Debug',
+
     'workspace_modal.title': 'Create workspace',
     'workspace_modal.name_label': 'Name (optional)',
     'workspace_modal.name_placeholder': 'name (optional)',
@@ -808,6 +875,8 @@ const I18N = {
     'workspace_modal.plan_placeholder': 'plan.md',
     'workspace_modal.convention_label': 'conventionPath (default 约定.md)',
     'workspace_modal.convention_placeholder': '约定.md',
+    'workspace_modal.requirements_label': 'requirementsPath (default 需求.md)',
+    'workspace_modal.requirements_placeholder': '需求.md',
     'workspace_modal.allowed_title': 'Allowed rootPath list (from /api/health)',
     'workspace_modal.allowed_hint': 'rootPath must be within the allowed list or you will get PATH_NOT_ALLOWED.',
     'workspace_modal.create': 'Create',
@@ -815,6 +884,7 @@ const I18N = {
     'workspace_modal.save': 'Save',
     'doc_modal.title_plan': 'Load plan',
     'doc_modal.title_convention': 'Load convention',
+    'doc_modal.title_requirements': 'Load requirements',
 
     'onboarding.title': 'Getting started: finish the minimal loop',
     'onboarding.subtitle': '3 steps: set token → create workspace → Start/Step',
@@ -838,8 +908,10 @@ const I18N = {
     'dash.kv.root': 'Root',
     'dash.kv.plan': 'Plan',
     'dash.kv.convention': 'Convention',
+    'dash.kv.requirements': 'Requirements',
     'dash.load_plan': 'Load plan',
     'dash.load_convention': 'Load convention',
+    'dash.load_requirements': 'Load requirements',
     'dash.load_digest': 'Load repoDigest',
     'dash.edit_workspace': 'Edit workspace',
     'dash.sessions': 'Sessions',
@@ -1256,6 +1328,31 @@ const state = {
   askSseKey: null,
   askSseRefreshTimer: null,
   askDebugText: '',
+  docsKind: 'requirements',
+  docsThreads: [],
+  docsThreadId: null,
+  docsThreadsSig: null,
+  docsThreadFilter: '',
+  docsMessageOpen: {},
+  docsMessages: [],
+  docsMessagesSig: null,
+  docsQueueItems: [],
+  docsQueueSig: null,
+  docsSendInFlight: false,
+  docsRecovering: false,
+  docsRenderMarkdown: true,
+  docsLastSendThreadId: null,
+  docsLastSendStartedAt: null,
+  docsLastSendEndedAt: null,
+  docsLastSendElapsedMs: null,
+  docsDebugText: '',
+  docsPreviewText: '',
+  docsPreviewPath: '',
+  docsPreviewTruncated: false,
+  docsPreviewLoaded: false,
+  docsPreviewError: '',
+  docsPreviewLoading: false,
+  docsPreviewRenderMarkdown: true,
   homeHiddenWorkspaces: {},
   homeSeenRuns: {},
   homeSeenAsk: {},
@@ -1278,7 +1375,7 @@ const state = {
 
 function normalizePage(value) {
   const p = String(value || '').trim().toLowerCase();
-  if (['home', 'dashboard', 'history', 'sessions', 'ask', 'files', 'settings'].includes(p)) return p;
+  if (['home', 'dashboard', 'history', 'sessions', 'ask', 'docs', 'files', 'settings'].includes(p)) return p;
   return 'dashboard';
 }
 
@@ -1290,6 +1387,7 @@ function getInitialPageFromUrl() {
     const path = String(window.location.pathname || '').toLowerCase();
     if (path === '/home' || path.startsWith('/home/')) return 'home';
     if (path === '/ask' || path.startsWith('/ask/')) return 'ask';
+    if (path === '/docs' || path.startsWith('/docs/')) return 'docs';
     if (path === '/files' || path.startsWith('/files/')) return 'files';
   } catch {}
   return null;
@@ -1351,6 +1449,10 @@ function selectedAskThread() {
   return state.askThreads.find((t) => t.id === state.askThreadId) || null;
 }
 
+function selectedDocsThread() {
+  return state.docsThreads.find((t) => t.id === state.docsThreadId) || null;
+}
+
 function askThreadsSignature(items) {
   const threads = Array.isArray(items) ? items : [];
   return threads
@@ -1384,6 +1486,31 @@ function askQueueSignature(threadId, items) {
     return `${id}:${status}:${updatedAt}:${err}`;
   });
   return `${String(threadId || '')}|${parts.join('|')}`;
+}
+
+function normalizeDocsKind(value) {
+  const k = String(value || '').trim().toLowerCase();
+  if (k === 'plan' || k === 'convention' || k === 'requirements') return k;
+  return 'requirements';
+}
+
+function getDocsThreadKind(thread) {
+  const cfg = readConfigJson(thread?.configJson);
+  const k = String(cfg?.docKind || '').trim().toLowerCase();
+  return k === 'plan' || k === 'convention' || k === 'requirements' ? k : null;
+}
+
+function clearDocsPreviewState() {
+  state.docsPreviewText = '';
+  state.docsPreviewPath = '';
+  state.docsPreviewTruncated = false;
+  state.docsPreviewLoaded = false;
+  state.docsPreviewError = '';
+  state.docsPreviewLoading = false;
+}
+
+function docsThreadsSignature(items) {
+  return askThreadsSignature(items);
 }
 
 function sessionLabel(s) {
@@ -1541,6 +1668,7 @@ function renderWorkspaceHeader() {
   q('#wsRoot').textContent = ws?.rootPath || '-';
   q('#wsPlan').textContent = ws?.planPath || '-';
   q('#wsConvention').textContent = ws?.conventionPath || '-';
+  q('#wsRequirements').textContent = ws?.requirementsPath || '-';
 }
 
 function isOnboardingHidden() {
@@ -2506,29 +2634,62 @@ function preserveAskInputSelection(fn) {
   } catch {}
 }
 
-function getAskStatusInfo(thread, { isSelected = false } = {}) {
+function getThreadStatusInfo(
+  thread,
+  { isSelected = false, sendInFlight = false, recovering = false, debugText = '', labels } = {}
+) {
   const statuses = {
-    idle: { label: t('ask.status_idle'), className: 'pill--status-idle' },
-    sending: { label: t('ask.status_sending'), className: 'pill--status-sending' },
-    recovering: { label: t('ask.status_recovering'), className: 'pill--status-recovering' },
-    failed: { label: t('ask.status_failed'), className: 'pill--status-failed' },
+    idle: { label: labels?.idle || '', className: 'pill--status-idle' },
+    sending: { label: labels?.sending || '', className: 'pill--status-sending' },
+    recovering: { label: labels?.recovering || '', className: 'pill--status-recovering' },
+    failed: { label: labels?.failed || '', className: 'pill--status-failed' },
   };
 
   if (!thread) return { key: 'idle', ...statuses.idle };
 
   const busy = Boolean(thread.busy);
-  const sending = Boolean(isSelected && state.askSendInFlight);
-  const recovering = Boolean(isSelected && state.askRecovering);
-  const hasError = Boolean(isSelected && state.askDebugText);
+  const sending = Boolean(isSelected && sendInFlight);
+  const isRecovering = Boolean(isSelected && recovering);
+  const hasError = Boolean(isSelected && debugText);
 
   let key = 'idle';
-  if (hasError && !sending && !recovering && !busy) key = 'failed';
-  else if (recovering) key = 'recovering';
+  if (hasError && !sending && !isRecovering && !busy) key = 'failed';
+  else if (isRecovering) key = 'recovering';
   else if (sending || busy) key = 'sending';
 
   const info = statuses[key];
-  if (!info) throw new Error(`ASK_STATUS_UNKNOWN: ${key}`);
+  if (!info) throw new Error(`THREAD_STATUS_UNKNOWN: ${key}`);
   return { key, ...info };
+}
+
+function getAskStatusInfo(thread, { isSelected = false } = {}) {
+  return getThreadStatusInfo(thread, {
+    isSelected,
+    sendInFlight: state.askSendInFlight,
+    recovering: state.askRecovering,
+    debugText: state.askDebugText,
+    labels: {
+      idle: t('ask.status_idle'),
+      sending: t('ask.status_sending'),
+      recovering: t('ask.status_recovering'),
+      failed: t('ask.status_failed'),
+    },
+  });
+}
+
+function getDocsStatusInfo(thread, { isSelected = false } = {}) {
+  return getThreadStatusInfo(thread, {
+    isSelected,
+    sendInFlight: state.docsSendInFlight,
+    recovering: state.docsRecovering,
+    debugText: state.docsDebugText,
+    labels: {
+      idle: t('docs.status_idle'),
+      sending: t('docs.status_sending'),
+      recovering: t('docs.status_recovering'),
+      failed: t('docs.status_failed'),
+    },
+  });
 }
 
 function formatElapsedMs(ms) {
@@ -2536,23 +2697,55 @@ function formatElapsedMs(ms) {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function getAskElapsedInfo(thread) {
-  const label = t('ask.elapsed_label');
-  if (!thread || state.askLastSendThreadId !== thread.id || !state.askLastSendStartedAt) {
-    return { text: `${label} —`, title: t('ask.elapsed_unavailable') };
+function getElapsedInfo({
+  label,
+  thread,
+  lastSendThreadId,
+  lastSendStartedAt,
+  lastSendEndedAt,
+  lastSendElapsedMs,
+  unavailableLabel,
+  pendingLabel,
+}) {
+  if (!thread || lastSendThreadId !== thread.id || !lastSendStartedAt) {
+    return { text: `${label} —`, title: unavailableLabel };
   }
-  if (!state.askLastSendEndedAt) {
-    return { text: `${label} —`, title: t('ask.elapsed_pending') };
+  if (!lastSendEndedAt) {
+    return { text: `${label} —`, title: pendingLabel };
   }
   const ms =
-    state.askLastSendElapsedMs ??
-    (state.askLastSendStartedAt && state.askLastSendEndedAt
-      ? state.askLastSendEndedAt - state.askLastSendStartedAt
-      : null);
+    lastSendElapsedMs ??
+    (lastSendStartedAt && lastSendEndedAt ? lastSendEndedAt - lastSendStartedAt : null);
   const formatted = formatElapsedMs(ms);
-  if (!formatted) return { text: `${label} —`, title: t('ask.elapsed_unavailable') };
-  const title = `${formatTs(state.askLastSendStartedAt)} → ${formatTs(state.askLastSendEndedAt)}`;
+  if (!formatted) return { text: `${label} —`, title: unavailableLabel };
+  const title = `${formatTs(lastSendStartedAt)} → ${formatTs(lastSendEndedAt)}`;
   return { text: `${label} ${formatted}`, title };
+}
+
+function getAskElapsedInfo(thread) {
+  return getElapsedInfo({
+    label: t('ask.elapsed_label'),
+    thread,
+    lastSendThreadId: state.askLastSendThreadId,
+    lastSendStartedAt: state.askLastSendStartedAt,
+    lastSendEndedAt: state.askLastSendEndedAt,
+    lastSendElapsedMs: state.askLastSendElapsedMs,
+    unavailableLabel: t('ask.elapsed_unavailable'),
+    pendingLabel: t('ask.elapsed_pending'),
+  });
+}
+
+function getDocsElapsedInfo(thread) {
+  return getElapsedInfo({
+    label: t('docs.elapsed_label'),
+    thread,
+    lastSendThreadId: state.docsLastSendThreadId,
+    lastSendStartedAt: state.docsLastSendStartedAt,
+    lastSendEndedAt: state.docsLastSendEndedAt,
+    lastSendElapsedMs: state.docsLastSendElapsedMs,
+    unavailableLabel: t('docs.elapsed_unavailable'),
+    pendingLabel: t('docs.elapsed_pending'),
+  });
 }
 
 function readAskUsageFromMeta(meta) {
@@ -2593,16 +2786,15 @@ function readAskUsageFromMeta(meta) {
   };
 }
 
-function getAskUsageInfo(thread) {
-  const label = t('ask.usage_label');
-  if (!thread) return { text: `${label} —`, title: t('ask.usage_unavailable') };
-  const msgs = state.askMessages || [];
+function getUsageInfo({ label, thread, messages, unavailableLabel }) {
+  if (!thread) return { text: `${label} —`, title: unavailableLabel };
+  const msgs = messages || [];
   const lastAssistant = [...msgs].reverse().find((m) => {
     if (String(m?.threadId || '') !== String(thread.id || '')) return false;
     return String(m?.role || '').toLowerCase() === 'assistant';
   });
   const usage = readAskUsageFromMeta(lastAssistant?.meta);
-  if (!usage) return { text: `${label} —`, title: t('ask.usage_unavailable') };
+  if (!usage) return { text: `${label} —`, title: unavailableLabel };
 
   const parts = [];
   if (Number.isFinite(Number(usage.prompt))) parts.push(`P:${usage.prompt}`);
@@ -2610,7 +2802,25 @@ function getAskUsageInfo(thread) {
   if (Number.isFinite(Number(usage.total))) parts.push(`T:${usage.total}`);
 
   const detail = parts.join(' ');
-  return { text: `${label} ${detail}`, title: detail || t('ask.usage_unavailable') };
+  return { text: `${label} ${detail}`, title: detail || unavailableLabel };
+}
+
+function getAskUsageInfo(thread) {
+  return getUsageInfo({
+    label: t('ask.usage_label'),
+    thread,
+    messages: state.askMessages || [],
+    unavailableLabel: t('ask.usage_unavailable'),
+  });
+}
+
+function getDocsUsageInfo(thread) {
+  return getUsageInfo({
+    label: t('docs.usage_label'),
+    thread,
+    messages: state.docsMessages || [],
+    unavailableLabel: t('docs.usage_unavailable'),
+  });
 }
 
 function renderAskStatusPill(thread) {
@@ -2649,13 +2859,49 @@ function renderAskDebugText() {
   debug.textContent = state.askDebugText ? state.askDebugText : t('placeholder.none');
 }
 
-function updateAskElapsedFromMessages(threadId, items) {
-  if (!state.askLastSendStartedAt) return;
-  if (state.askLastSendThreadId !== threadId) return;
-  if (state.askLastSendEndedAt) return;
+function renderDocsStatusPill(thread) {
+  const pill = q('#docsStatusPill');
+  if (!pill) return;
+  let info = null;
+  try {
+    info = getDocsStatusInfo(thread, { isSelected: Boolean(thread && thread.id === state.docsThreadId) });
+  } catch (err) {
+    toast(`DOCS_RENDER_ERROR · status · ${err?.message || err}`);
+    throw err;
+  }
+  pill.textContent = info.label;
+  pill.classList.remove('pill--status-idle', 'pill--status-sending', 'pill--status-recovering', 'pill--status-failed');
+  pill.classList.add('pill--status', info.className);
+}
 
-  const startedAt = Number(state.askLastSendStartedAt);
-  if (!Number.isFinite(startedAt)) return;
+function renderDocsStatusMeta(thread) {
+  const elapsedEl = q('#docsElapsed');
+  const usageEl = q('#docsUsage');
+  if (elapsedEl) {
+    const elapsed = getDocsElapsedInfo(thread);
+    elapsedEl.textContent = elapsed.text;
+    elapsedEl.title = elapsed.title || '';
+  }
+  if (usageEl) {
+    const usage = getDocsUsageInfo(thread);
+    usageEl.textContent = usage.text;
+    usageEl.title = usage.title || '';
+  }
+}
+
+function renderDocsDebugText() {
+  const debug = q('#docsDebug');
+  if (!debug) return;
+  debug.textContent = state.docsDebugText ? state.docsDebugText : t('placeholder.none');
+}
+
+function updateElapsedFromMessages({ threadId, items, lastSendThreadId, lastSendStartedAt, lastSendEndedAt }) {
+  if (!lastSendStartedAt) return null;
+  if (lastSendThreadId !== threadId) return null;
+  if (lastSendEndedAt) return null;
+
+  const startedAt = Number(lastSendStartedAt);
+  if (!Number.isFinite(startedAt)) return null;
   const match = (items || []).find((m) => {
     if (!m) return false;
     const role = String(m.role || '').toLowerCase();
@@ -2663,18 +2909,62 @@ function updateAskElapsedFromMessages(threadId, items) {
     const createdAt = Number(m.createdAt || 0);
     return Number.isFinite(createdAt) && createdAt >= startedAt;
   });
-  if (!match) return;
+  if (!match) return null;
   const endedAt = Number(match.createdAt || 0);
-  if (!Number.isFinite(endedAt)) return;
-  state.askLastSendEndedAt = endedAt;
-  state.askLastSendElapsedMs = endedAt - startedAt;
+  if (!Number.isFinite(endedAt)) return null;
+  return { endedAt, elapsedMs: endedAt - startedAt };
+}
+
+function finalizeElapsedNow({ lastSendStartedAt, lastSendEndedAt }) {
+  if (!lastSendStartedAt || lastSendEndedAt) return null;
+  const endedAt = Date.now();
+  return { endedAt, elapsedMs: endedAt - Number(lastSendStartedAt) };
+}
+
+function updateAskElapsedFromMessages(threadId, items) {
+  const next = updateElapsedFromMessages({
+    threadId,
+    items,
+    lastSendThreadId: state.askLastSendThreadId,
+    lastSendStartedAt: state.askLastSendStartedAt,
+    lastSendEndedAt: state.askLastSendEndedAt,
+  });
+  if (!next) return;
+  state.askLastSendEndedAt = next.endedAt;
+  state.askLastSendElapsedMs = next.elapsedMs;
 }
 
 function finalizeAskElapsedNow() {
-  if (!state.askLastSendStartedAt || state.askLastSendEndedAt) return;
-  const endedAt = Date.now();
-  state.askLastSendEndedAt = endedAt;
-  state.askLastSendElapsedMs = endedAt - Number(state.askLastSendStartedAt);
+  const next = finalizeElapsedNow({
+    lastSendStartedAt: state.askLastSendStartedAt,
+    lastSendEndedAt: state.askLastSendEndedAt,
+  });
+  if (!next) return;
+  state.askLastSendEndedAt = next.endedAt;
+  state.askLastSendElapsedMs = next.elapsedMs;
+}
+
+function updateDocsElapsedFromMessages(threadId, items) {
+  const next = updateElapsedFromMessages({
+    threadId,
+    items,
+    lastSendThreadId: state.docsLastSendThreadId,
+    lastSendStartedAt: state.docsLastSendStartedAt,
+    lastSendEndedAt: state.docsLastSendEndedAt,
+  });
+  if (!next) return;
+  state.docsLastSendEndedAt = next.endedAt;
+  state.docsLastSendElapsedMs = next.elapsedMs;
+}
+
+function finalizeDocsElapsedNow() {
+  const next = finalizeElapsedNow({
+    lastSendStartedAt: state.docsLastSendStartedAt,
+    lastSendEndedAt: state.docsLastSendEndedAt,
+  });
+  if (!next) return;
+  state.docsLastSendEndedAt = next.endedAt;
+  state.docsLastSendElapsedMs = next.elapsedMs;
 }
 
 function renderAskRuntimeControls(thread) {
@@ -2769,6 +3059,95 @@ function renderAskThreads() {
     .join('');
 }
 
+function renderDocsTabs() {
+  const kind = normalizeDocsKind(state.docsKind);
+  state.docsKind = kind;
+  qa('[data-doc-tab]').forEach((btn) => {
+    btn.classList.toggle('tabs__btn--active', btn.dataset.docTab === kind);
+  });
+}
+
+function setDocsKind(kind, options = {}) {
+  const next = normalizeDocsKind(kind);
+  const force = Boolean(options?.force);
+  if (!force && state.docsKind === next) {
+    renderDocsTabs();
+    return;
+  }
+  state.docsKind = next;
+  state.docsThreadId = null;
+  state.docsThreads = [];
+  state.docsThreadsSig = null;
+  state.docsMessages = [];
+  state.docsMessagesSig = null;
+  state.docsQueueItems = [];
+  state.docsQueueSig = null;
+  clearDocsPreviewState();
+  renderDocsPreview();
+  renderDocsTabs();
+  if (state.page === 'docs' && state.workspaceId && !options?.skipLoad) {
+    if (!getAdminToken()) {
+      state.docsPreviewError = 'ADMIN_TOKEN_REQUIRED';
+      renderDocsPreview();
+    } else {
+      loadDocsThreads(state.workspaceId).catch(toast);
+      loadDocsPreview().catch(() => {});
+      return;
+    }
+  }
+  renderDocsThreads();
+  renderDocsThread();
+}
+
+function renderDocsThreads() {
+  renderDocsTabs();
+  const host = q('#docsThreadsList');
+  if (!host) return;
+
+  if (!state.workspaceId) {
+    host.textContent = t('placeholder.no_workspaces');
+    return;
+  }
+  if (!getAdminToken()) {
+    host.textContent = t('toast.ADMIN_TOKEN_REQUIRED');
+    return;
+  }
+
+  const filter = String(state.docsThreadFilter || '').trim().toLowerCase();
+  const threads = (state.docsThreads || []).filter((th) => {
+    if (!filter) return true;
+    return (
+      String(th.title || '').toLowerCase().includes(filter) ||
+      String(th.id || '').toLowerCase().includes(filter) ||
+      String(th.providerSessionId || '').toLowerCase().includes(filter)
+    );
+  });
+
+  if (!threads.length) {
+    host.textContent = t('placeholder.no_data');
+    return;
+  }
+
+  host.innerHTML = threads
+    .map((th) => {
+      const selected = th.id === state.docsThreadId;
+      const title = escapeHtml(th.title || '(untitled)');
+      const kind = getDocsThreadKind(th) || '-';
+      const meta = [
+        `kind=${escapeHtml(kind)}`,
+        `provider=${escapeHtml(th.provider || '-')}`,
+        `last=${escapeHtml(formatTs(th.lastActiveAt || th.updatedAt || th.createdAt))}`,
+        th.providerSessionId ? `resume=${escapeHtml(String(th.providerSessionId).slice(0, 10))}…` : 'resume=-',
+      ].join(' · ');
+      return `<div class="list__item${selected ? ' list__item--selected' : ''}" data-doc-thread-id="${escapeHtml(th.id)}">
+  <div class="list__title">${title}</div>
+  <div class="list__meta mono">${meta}</div>
+  <div class="list__meta mono">${escapeHtml(th.id)}</div>
+</div>`;
+    })
+    .join('');
+}
+
 function renderAskMessagesControls() {
   const hintEl = q('#askMessagesHint');
   const moreBtn = q('#askLoadMoreBtn');
@@ -2806,25 +3185,33 @@ function renderAskMessagesControls() {
   }
 }
 
-function renderAskMessages() {
-  const host = q('#askMessages');
+function renderChatMessages({
+  hostSelector,
+  thread,
+  messages,
+  messageOpenState,
+  renderMarkdown,
+  noneLabel,
+  emptyLabel,
+  dataAttr,
+  forceScrollToBottom = false,
+  prependScrollFix = false,
+} = {}) {
+  const host = q(hostSelector);
   if (!host) return;
-
-  renderAskMessagesControls();
 
   const wasNearBottom = isNearBottom(host, 80);
   const prevScrollTop = host.scrollTop;
   const prevScrollHeight = host.scrollHeight;
 
-  const thread = selectedAskThread();
   if (!thread) {
-    host.textContent = t('placeholder.none');
+    host.textContent = noneLabel;
     return;
   }
 
-  const msgs = state.askMessages || [];
+  const msgs = messages || [];
   if (!msgs.length) {
-    host.textContent = t('placeholder.no_data');
+    host.textContent = emptyLabel;
     return;
   }
 
@@ -2837,14 +3224,14 @@ function renderAskMessages() {
       const outDir = m.meta?.outDir ? escapeHtml(String(m.meta.outDir)) : '';
       const msgId = String(m.id || '');
       const roleLabel = role === 'assistant' ? 'assistant' : role === 'system' ? 'system' : 'user';
-      const hasOpen = Object.prototype.hasOwnProperty.call(state.askMessageOpen || {}, msgId);
-      const open = hasOpen ? Boolean(state.askMessageOpen[msgId]) : false;
+      const hasOpen = Object.prototype.hasOwnProperty.call(messageOpenState || {}, msgId);
+      const open = hasOpen ? Boolean(messageOpenState[msgId]) : false;
       const openAttr = open ? ' open' : '';
       const preview = escapeHtml(previewLines(rawText, 3));
-      const body = state.askRenderMarkdown
+      const body = renderMarkdown
         ? `<div class="chat__bubble md">${renderMarkdownSafe(rawText) || ''}</div>`
         : `<pre class="chat__bubble">${text || ''}</pre>`;
-      return `<details class="chat__msg chat__msg--${roleLabel}" data-ask-msg-id="${escapeHtml(msgId)}"${openAttr}>
+      return `<details class="chat__msg chat__msg--${roleLabel}" data-${dataAttr}="${escapeHtml(msgId)}"${openAttr}>
   <summary class="chat__summary">
     <span class="chat__summaryMeta mono">${escapeHtml(roleLabel)} · ${escapeHtml(ts)}</span>
     <span class="chat__summaryPreview">${preview}</span>
@@ -2855,25 +3242,108 @@ function renderAskMessages() {
     })
     .join('');
 
-  host.querySelectorAll('details[data-ask-msg-id]').forEach((el) => {
+  host.querySelectorAll(`details[data-${dataAttr}]`).forEach((el) => {
     el.addEventListener('toggle', () => {
-      const id = el.dataset.askMsgId;
+      const id = el.dataset[camelCaseDataKey(dataAttr)];
       if (!id) return;
-      state.askMessageOpen[id] = Boolean(el.open);
+      if (!messageOpenState) return;
+      messageOpenState[id] = Boolean(el.open);
     });
   });
 
-  // Only stick to bottom if the user was already near bottom (or explicitly requested).
+  try {
+    if (forceScrollToBottom || wasNearBottom) host.scrollTop = host.scrollHeight;
+    else if (prependScrollFix) host.scrollTop = prevScrollTop + (host.scrollHeight - prevScrollHeight);
+    else host.scrollTop = prevScrollTop;
+  } catch {}
+}
+
+function camelCaseDataKey(attr) {
+  return String(attr || '')
+    .split('-')
+    .map((part, idx) => (idx === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+    .join('');
+}
+
+function renderAskMessages() {
+  renderAskMessagesControls();
+
   const force = Boolean(state.askForceScrollToBottom);
   const prependFix = Boolean(state.askMessagesPrependScrollFix);
   state.askForceScrollToBottom = false;
   state.askMessagesPrependScrollFix = false;
 
-  try {
-    if (force || wasNearBottom) host.scrollTop = host.scrollHeight;
-    else if (prependFix) host.scrollTop = prevScrollTop + (host.scrollHeight - prevScrollHeight);
-    else host.scrollTop = prevScrollTop;
-  } catch {}
+  renderChatMessages({
+    hostSelector: '#askMessages',
+    thread: selectedAskThread(),
+    messages: state.askMessages || [],
+    messageOpenState: state.askMessageOpen,
+    renderMarkdown: state.askRenderMarkdown,
+    noneLabel: t('placeholder.none'),
+    emptyLabel: t('placeholder.no_data'),
+    dataAttr: 'ask-msg-id',
+    forceScrollToBottom: force,
+    prependScrollFix: prependFix,
+  });
+}
+
+function renderDocsMessages() {
+  renderChatMessages({
+    hostSelector: '#docsMessages',
+    thread: selectedDocsThread(),
+    messages: state.docsMessages || [],
+    messageOpenState: state.docsMessageOpen,
+    renderMarkdown: state.docsRenderMarkdown,
+    noneLabel: t('placeholder.none'),
+    emptyLabel: t('placeholder.no_data'),
+    dataAttr: 'docs-msg-id',
+    forceScrollToBottom: false,
+    prependScrollFix: false,
+  });
+}
+
+function renderDocsPreview() {
+  const body = q('#docsPreviewBody');
+  if (!body) return;
+
+  const refreshBtn = q('#docsPreviewRefreshBtn');
+  if (refreshBtn) refreshBtn.disabled = Boolean(state.docsPreviewLoading);
+
+  const toggle = q('#docsPreviewRenderToggle');
+  if (toggle) toggle.checked = Boolean(state.docsPreviewRenderMarkdown);
+
+  const errorEl = q('#docsPreviewError');
+  if (errorEl) {
+    if (state.docsPreviewError) {
+      errorEl.textContent = state.docsPreviewError;
+      errorEl.classList.remove('hidden');
+    } else {
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
+    }
+  }
+
+  if (state.docsPreviewLoading) {
+    body.classList.remove('md');
+    body.textContent = t('placeholder.loading');
+    return;
+  }
+
+  const rawText = String(state.docsPreviewText || '');
+  if (!rawText) {
+    body.classList.remove('md');
+    body.textContent = state.docsPreviewLoaded ? '' : t('docs.preview_placeholder');
+    return;
+  }
+
+  if (state.docsPreviewRenderMarkdown) {
+    body.classList.add('md');
+    body.innerHTML = renderMarkdownSafe(rawText) || '';
+    return;
+  }
+
+  body.classList.remove('md');
+  body.textContent = rawText;
 }
 
 function renderAskQueue() {
@@ -3127,6 +3597,103 @@ function renderAskThread() {
     stopBtn.disabled = !Boolean(thread.busy);
     stopBtn.textContent = t('ask.stop');
   }
+}
+
+function renderDocsThread() {
+  const header = q('#docsThreadHeader');
+  if (!header) return;
+
+  const thread = selectedDocsThread();
+  const sendBtn = q('#docsSendBtn');
+  const stopBtn = q('#docsStopBtn');
+
+  renderDocsDebugText();
+
+  if (!thread) {
+    header.textContent = t('placeholder.none');
+    renderDocsStatusPill(null);
+    renderDocsStatusMeta(null);
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.textContent = t('docs.send');
+    }
+    if (stopBtn) {
+      stopBtn.disabled = true;
+      stopBtn.textContent = t('docs.stop');
+    }
+    q('#docsThreadId').textContent = '-';
+    q('#docsResumeId').textContent = '-';
+    q('#docsProviderView').textContent = '-';
+    q('#docsModelView').textContent = '-';
+    q('#docsEffortView').textContent = '-';
+    q('#docsSandboxView').textContent = '-';
+    q('#docsProviderSelect').value = 'codex';
+    q('#docsModelInput').value = '';
+    q('#docsEffortSelect').value = '';
+    q('#docsSandboxSelect').value = 'workspace-write';
+    setModelInputProvider(q('#docsModelInput'), 'codex');
+    refreshModelPresetSelect(q('#docsModelPreset'), q('#docsModelInput'), 'codex');
+    renderDocsMessages();
+    renderDocsPreview();
+    return;
+  }
+
+  const cfg = readConfigJson(thread.configJson);
+
+  header.textContent = `${thread.title || '(untitled)'} · ${thread.id.slice(0, 8)}…`;
+  q('#docsThreadId').textContent = thread.id;
+  q('#docsResumeId').textContent = thread.providerSessionId || '-';
+  q('#docsProviderView').textContent = thread.provider || '-';
+  q('#docsModelView').textContent = cfg.model || '-';
+  q('#docsEffortView').textContent = cfg.model_reasoning_effort || '-';
+  q('#docsSandboxView').textContent = cfg.sandbox || '-';
+
+  const providerSelect = q('#docsProviderSelect');
+  const modelInput = q('#docsModelInput');
+  const effortSelect = q('#docsEffortSelect');
+  const sandboxSelect = q('#docsSandboxSelect');
+  const modelPreset = q('#docsModelPreset');
+
+  const active = (() => {
+    try {
+      return document.activeElement;
+    } catch {
+      return null;
+    }
+  })();
+
+  const nextProvider = String(thread.provider || 'codex');
+  if (providerSelect && active !== providerSelect && providerSelect.value !== nextProvider) providerSelect.value = nextProvider;
+
+  const nextModel = String(cfg.model || '');
+  if (modelInput && active !== modelInput && modelInput.value !== nextModel) modelInput.value = nextModel;
+
+  const nextEffort = String(cfg.model_reasoning_effort || '');
+  if (effortSelect && active !== effortSelect && effortSelect.value !== nextEffort) effortSelect.value = nextEffort;
+
+  const nextSandbox = String(cfg.sandbox || 'workspace-write');
+  if (sandboxSelect && active !== sandboxSelect && sandboxSelect.value !== nextSandbox) sandboxSelect.value = nextSandbox;
+
+  setModelInputProvider(modelInput, nextProvider);
+  if (modelPreset && modelInput && active !== modelPreset && active !== modelInput) {
+    refreshModelPresetSelect(modelPreset, modelInput, nextProvider);
+  }
+
+  renderDocsStatusPill(thread);
+  renderDocsStatusMeta(thread);
+
+  if (sendBtn) {
+    sendBtn.disabled = Boolean(state.docsSendInFlight);
+    sendBtn.textContent = state.docsSendInFlight ? t('docs.send_sending') : t('docs.send');
+  }
+
+  if (stopBtn) {
+    stopBtn.disabled = !Boolean(thread.busy);
+    stopBtn.textContent = t('docs.stop');
+  }
+
+  renderDocsMessages();
+  renderDocsPreview();
 }
 
 function normalizeSlashPath(p) {
@@ -3583,19 +4150,30 @@ async function loadHistoryRunDetail(runId) {
 
 function normalizeWorkspaceDocKind(kind) {
   const k = String(kind || '').trim().toLowerCase();
-  return k === 'convention' ? 'convention' : 'plan';
+  if (k === 'convention') return 'convention';
+  if (k === 'requirements') return 'requirements';
+  return 'plan';
 }
 
 function getWorkspaceDocEndpoint(kind) {
-  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'convention' : 'plan';
+  const k = normalizeWorkspaceDocKind(kind);
+  if (k === 'convention') return 'convention';
+  if (k === 'requirements') return 'requirements';
+  return 'plan';
 }
 
 function getWorkspaceDocPathKey(kind) {
-  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'conventionPath' : 'planPath';
+  const k = normalizeWorkspaceDocKind(kind);
+  if (k === 'convention') return 'conventionPath';
+  if (k === 'requirements') return 'requirementsPath';
+  return 'planPath';
 }
 
 function getWorkspaceDocTitleKey(kind) {
-  return normalizeWorkspaceDocKind(kind) === 'convention' ? 'doc_modal.title_convention' : 'doc_modal.title_plan';
+  const k = normalizeWorkspaceDocKind(kind);
+  if (k === 'convention') return 'doc_modal.title_convention';
+  if (k === 'requirements') return 'doc_modal.title_requirements';
+  return 'doc_modal.title_plan';
 }
 
 function formatWorkspaceDocKey(key) {
@@ -3610,9 +4188,12 @@ async function fetchWorkspaceDoc(workspaceId, kind) {
   const k = normalizeWorkspaceDocKind(kind);
   const endpoint = getWorkspaceDocEndpoint(k);
   const data = await fetchJson(`/api/workspaces/${encodeURIComponent(wsId)}/${endpoint}`);
+  let path = data.planPath;
+  if (k === 'convention') path = data.conventionPath;
+  if (k === 'requirements') path = data.requirementsPath;
   return {
     kind: k,
-    path: k === 'convention' ? data.conventionPath : data.planPath,
+    path,
     truncated: Boolean(data.truncated),
     text: data.content || '',
   };
@@ -3938,6 +4519,146 @@ async function loadAskThreads(workspaceId, options = {}) {
   return { threadsChanged, selectionChanged };
 }
 
+async function loadDocsThreads(workspaceId) {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const data = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/ask/threads`, {
+    headers: { ...authHeaders() },
+  });
+  const kind = normalizeDocsKind(state.docsKind);
+  const items = (data.items || []).filter((t) => getDocsThreadKind(t) === kind);
+  const threadsSig = docsThreadsSignature(items);
+  const threadsChanged = threadsSig !== state.docsThreadsSig;
+  if (threadsChanged) {
+    state.docsThreads = items;
+    state.docsThreadsSig = threadsSig;
+  }
+
+  let selectionChanged = false;
+  if (state.docsThreadId && !items.some((t) => t.id === state.docsThreadId)) {
+    state.docsThreadId = null;
+    state.docsMessages = [];
+    state.docsMessagesSig = null;
+    state.docsQueueItems = [];
+    state.docsQueueSig = null;
+    selectionChanged = true;
+  }
+  if (!state.docsThreadId && items.length) {
+    state.docsThreadId = items[0].id;
+    state.docsMessages = [];
+    state.docsMessagesSig = null;
+    state.docsQueueItems = [];
+    state.docsQueueSig = null;
+    selectionChanged = true;
+    await loadDocsMessages(state.docsThreadId).catch(toast);
+    await loadDocsQueue(state.docsThreadId).catch(toast);
+  }
+  if (threadsChanged || selectionChanged) {
+    renderDocsThreads();
+  }
+  renderDocsThread();
+  return { threadsChanged, selectionChanged };
+}
+
+async function loadDocsMessages(threadId) {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const id = String(threadId || '').trim();
+  if (!id) return;
+
+  const params = new URLSearchParams();
+  params.set('limit', String(ASK_MESSAGES_DEFAULT_TAIL_LIMIT));
+  params.set('tail', '1');
+  const url = `/api/ask/threads/${encodeURIComponent(id)}/messages?${params.toString()}`;
+  const data = await fetchJson(url, { headers: { ...authHeaders() } });
+  const items = data?.items || [];
+  const sig = askMessagesSignature(id, items);
+  if (sig === state.docsMessagesSig) return;
+  state.docsMessages = items;
+  state.docsMessagesSig = sig;
+  updateDocsElapsedFromMessages(id, items);
+  if (state.docsThreadId === id) renderDocsStatusMeta(selectedDocsThread());
+  if (state.docsThreadId === id) renderDocsMessages();
+}
+
+async function loadDocsQueue(threadId) {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const id = String(threadId || '').trim();
+  if (!id) return;
+  const data = await fetchJson(`/api/ask/threads/${encodeURIComponent(id)}/queue`, {
+    headers: { ...authHeaders() },
+  });
+  const items = data?.items || [];
+  const sig = askQueueSignature(id, items);
+  if (sig === state.docsQueueSig) return;
+  state.docsQueueItems = items;
+  state.docsQueueSig = sig;
+}
+
+async function loadDocsPreview() {
+  if (state.docsPreviewLoading) return;
+
+  const wsId = String(state.workspaceId || '').trim();
+  const kind = normalizeDocsKind(state.docsKind);
+  const token = getAdminToken();
+
+  state.docsPreviewLoading = true;
+  state.docsPreviewLoaded = false;
+  state.docsPreviewError = '';
+  state.docsPreviewText = '';
+  state.docsPreviewPath = '';
+  state.docsPreviewTruncated = false;
+  renderDocsPreview();
+
+  if (!wsId) {
+    state.docsPreviewLoading = false;
+    state.docsPreviewError = 'WORKSPACE_NOT_SELECTED';
+    renderDocsPreview();
+    return;
+  }
+  if (!token) {
+    state.docsPreviewLoading = false;
+    state.docsPreviewError = 'ADMIN_TOKEN_REQUIRED';
+    renderDocsPreview();
+    return;
+  }
+
+  const ws = selectedWorkspace();
+  if (!ws) {
+    state.docsPreviewLoading = false;
+    state.docsPreviewError = `WORKSPACE_NOT_FOUND 路 workspaceId=${wsId}`;
+    renderDocsPreview();
+    return;
+  }
+
+  const pathKey = getWorkspaceDocPathKey(kind);
+  const configuredPath = String(ws[pathKey] || '').trim();
+  if ((kind === 'convention' || kind === 'requirements') && !configuredPath) {
+    const code = `${formatWorkspaceDocKey(pathKey)}_REQUIRED`;
+    state.docsPreviewLoading = false;
+    state.docsPreviewError = `${code} 路 workspaceId=${wsId} 路 kind=${kind} 路 path=${configuredPath || '-'} 路 ${pathKey} missing`;
+    renderDocsPreview();
+    return;
+  }
+
+  try {
+    const data = await fetchWorkspaceDoc(wsId, kind);
+    state.docsPreviewLoaded = true;
+    state.docsPreviewText = data.text || '';
+    state.docsPreviewPath = data.path || configuredPath || '';
+    state.docsPreviewTruncated = Boolean(data.truncated);
+  } catch (err) {
+    const endpoint = getWorkspaceDocEndpoint(kind);
+    const ctx = `GET /api/workspaces/${wsId}/${endpoint} 路 workspaceId=${wsId} 路 kind=${kind} 路 path=${configuredPath || '-'}`;
+    state.docsPreviewError = formatApiError(err, ctx);
+    state.docsPreviewPath = configuredPath || '';
+  } finally {
+    state.docsPreviewLoading = false;
+    renderDocsPreview();
+  }
+}
+
 async function loadAskMessages(threadId, options = {}) {
   const token = getAdminToken();
   if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
@@ -4223,6 +4944,7 @@ function renderDigestText() {
 
 const WORKSPACE_MODAL_DEFAULT_PLAN = 'plan.md';
 const WORKSPACE_MODAL_DEFAULT_CONVENTION = '约定.md';
+const WORKSPACE_MODAL_DEFAULT_REQUIREMENTS = '需求.md';
 
 function guessWorkspaceNameFromRoot(rootPath) {
   const trimmed = String(rootPath || '').trim().replace(/[\\/]+$/, '');
@@ -4232,9 +4954,10 @@ function guessWorkspaceNameFromRoot(rootPath) {
 }
 
 function buildWorkspacePayload(
-  { name, rootPath, planPath, conventionPath },
+  input = {},
   { allowNameGuess = true, includeEmptyPaths = false } = {}
 ) {
+  const { name, rootPath, planPath, conventionPath, requirementsPath } = input;
   const root = String(rootPath || '').trim();
   if (!root) throw new Error('ROOT_PATH_REQUIRED');
 
@@ -4245,8 +4968,12 @@ function buildWorkspacePayload(
   const payload = { name: finalName, rootPath: root };
   const plan = String(planPath || '').trim();
   const convention = String(conventionPath || '').trim();
+  const requirements = String(requirementsPath || '').trim();
   if (includeEmptyPaths || plan) payload.planPath = plan;
   if (includeEmptyPaths || convention) payload.conventionPath = convention;
+  if (Object.prototype.hasOwnProperty.call(input, 'requirementsPath') && (includeEmptyPaths || requirements)) {
+    payload.requirementsPath = requirements;
+  }
   return payload;
 }
 
@@ -4425,6 +5152,7 @@ function openCreateWorkspaceModal() {
   mustGetEl('#workspaceModalRoot').value = '';
   mustGetEl('#workspaceModalPlan').value = WORKSPACE_MODAL_DEFAULT_PLAN;
   mustGetEl('#workspaceModalConvention').value = WORKSPACE_MODAL_DEFAULT_CONVENTION;
+  mustGetEl('#workspaceModalRequirements').value = WORKSPACE_MODAL_DEFAULT_REQUIREMENTS;
   openWorkspaceModalBase();
 }
 
@@ -4437,6 +5165,7 @@ function openEditWorkspaceModal(workspace) {
   mustGetEl('#workspaceModalRoot').value = requireWorkspaceValue(ws, 'rootPath');
   mustGetEl('#workspaceModalPlan').value = requireWorkspaceValue(ws, 'planPath');
   mustGetEl('#workspaceModalConvention').value = requireWorkspaceValue(ws, 'conventionPath');
+  mustGetEl('#workspaceModalRequirements').value = requireWorkspaceValue(ws, 'requirementsPath');
   openWorkspaceModalBase();
 }
 
@@ -4459,6 +5188,7 @@ async function submitWorkspaceModal() {
     rootPath: mustGetEl('#workspaceModalRoot').value,
     planPath: mustGetEl('#workspaceModalPlan').value,
     conventionPath: mustGetEl('#workspaceModalConvention').value,
+    requirementsPath: mustGetEl('#workspaceModalRequirements').value,
   };
   const mode = state.workspaceModalMode === 'edit' ? 'edit' : 'create';
 
@@ -4574,6 +5304,12 @@ async function loadWorkspaceDocForModal(kind) {
     renderWorkspaceDocModal();
     return;
   }
+  if (k === 'requirements' && !configuredPath) {
+    const code = `${formatWorkspaceDocKey(pathKey)}_REQUIRED`;
+    setWorkspaceDocModalError(`${code} · workspaceId=${wsId} · kind=requirements · edit workspace to set ${pathKey}`);
+    renderWorkspaceDocModal();
+    return;
+  }
 
   try {
     const data = await fetchWorkspaceDoc(wsId, k);
@@ -4664,6 +5400,18 @@ async function selectAskThreadById(threadId) {
   maybeStartAskRecovery();
 }
 
+async function selectDocsThreadById(threadId) {
+  state.docsThreadId = threadId;
+  state.docsMessages = [];
+  state.docsMessagesSig = null;
+  state.docsQueueItems = [];
+  state.docsQueueSig = null;
+  renderDocsThreads();
+  renderDocsThread();
+  await loadDocsMessages(threadId);
+  await loadDocsQueue(threadId);
+}
+
 async function loadMoreAskMessagesFromUi() {
   const token = getAdminToken();
   if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
@@ -4715,6 +5463,30 @@ async function createAskThreadFromUi() {
 
   await loadAskThreads(workspaceId);
   await selectAskThreadById(created.id);
+}
+
+async function createDocsThreadFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const workspaceId = state.workspaceId;
+  if (!workspaceId) throw new Error('WORKSPACE_NOT_SELECTED');
+
+  const ws = selectedWorkspace();
+  const kind = normalizeDocsKind(state.docsKind);
+  const title = `Doc:${kind} · ${ws?.name || workspaceId} · ${new Date().toLocaleString()}`;
+
+  const created = await fetchJson(`/api/workspaces/${encodeURIComponent(workspaceId)}/ask/threads`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({
+      title,
+      provider: 'codex',
+      config: { docKind: kind, sandbox: 'workspace-write', systemPromptPath: 'prompts/doc_writer_system.md' },
+    }),
+  });
+
+  await loadDocsThreads(workspaceId);
+  await selectDocsThreadById(created.id);
 }
 
 async function saveAskQueueEditFromUi(queueItemId) {
@@ -4815,6 +5587,115 @@ async function sendAskFromUi() {
   startAskRecoveryPoll(thread.id);
 }
 
+function requireDocsThreadConfig(thread) {
+  const cfg = readConfigJson(thread?.configJson);
+  const docKind = String(cfg?.docKind || '').trim().toLowerCase();
+  if (!['requirements', 'plan', 'convention'].includes(docKind)) {
+    throw new Error(`DOC_KIND_REQUIRED · threadId=${thread?.id || '-'} · docKind=${docKind || '-'}`);
+  }
+  const promptPath = String(cfg?.systemPromptPath || '').trim();
+  if (!promptPath) {
+    throw new Error(`DOC_SYSTEM_PROMPT_REQUIRED · threadId=${thread?.id || '-'} · docKind=${docKind}`);
+  }
+  const sandbox = String(cfg?.sandbox || '').trim();
+  if (!sandbox) {
+    throw new Error(`DOC_SANDBOX_REQUIRED · threadId=${thread?.id || '-'} · docKind=${docKind}`);
+  }
+  return { cfg, docKind, promptPath, sandbox };
+}
+
+async function sendDocsFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const thread = selectedDocsThread();
+  if (!thread) throw new Error('DOC_THREAD_NOT_FOUND');
+  try {
+    requireDocsThreadConfig(thread);
+  } catch (err) {
+    state.docsDebugText = err?.message || String(err);
+    renderDocsThread();
+    throw err;
+  }
+
+  const input = q('#docsInput');
+  const text = String(input?.value || '').trim();
+  if (!text) return;
+  if (state.docsSendInFlight) return;
+  if (input) input.value = '';
+
+  state.docsDebugText = '';
+  state.docsSendInFlight = true;
+  state.docsLastSendThreadId = thread.id;
+  state.docsLastSendStartedAt = Date.now();
+  state.docsLastSendEndedAt = null;
+  state.docsLastSendElapsedMs = null;
+  renderDocsThread();
+
+  let resp = null;
+  try {
+    resp = await fetchJson(`/api/ask/threads/${encodeURIComponent(thread.id)}/send`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ text }),
+    });
+  } catch (err) {
+    const status = err?.status;
+    if (status === 401 || status === 403 || String(err?.message || '') === 'ADMIN_TOKEN_REQUIRED') {
+      state.docsSendInFlight = false;
+      finalizeDocsElapsedNow();
+      renderDocsThread();
+      throw err;
+    }
+    state.docsSendInFlight = false;
+    finalizeDocsElapsedNow();
+    state.docsDebugText = err?.body ? JSON.stringify(err.body, null, 2) : String(err?.message || err);
+    renderDocsThread();
+    return;
+  }
+
+  state.docsSendInFlight = false;
+  const updatedThread = resp.thread || null;
+  if (updatedThread) state.docsThreads = (state.docsThreads || []).map((t0) => (t0.id === updatedThread.id ? updatedThread : t0));
+
+  await loadDocsMessages(thread.id).catch(() => {});
+  await loadDocsQueue(thread.id).catch(() => {});
+  await loadDocsPreview().catch(() => {});
+
+  renderDocsThreads();
+  renderDocsThread();
+}
+
+async function stopDocsFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const thread = selectedDocsThread();
+  if (!thread) throw new Error('DOC_THREAD_NOT_FOUND');
+
+  if (!thread.busy) {
+    toast('ASK_STOP_NOT_RUNNING');
+    return;
+  }
+
+  state.docsDebugText = '';
+  renderDocsThread();
+
+  try {
+    const resp = await fetchJson(`/api/ask/threads/${encodeURIComponent(thread.id)}/stop`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({}),
+    });
+    if (!resp?.stopped) toast('ASK_STOP_NOT_RUNNING');
+  } catch (err) {
+    const status = err?.status;
+    if (status === 401 || status === 403 || String(err?.message || '') === 'ADMIN_TOKEN_REQUIRED') throw err;
+    state.docsDebugText = err?.body ? JSON.stringify(err.body, null, 2) : String(err?.message || err);
+    renderDocsThread();
+  }
+
+  await loadDocsThreads(state.workspaceId).catch(() => {});
+}
+
 async function stopAskFromUi() {
   const token = getAdminToken();
   if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
@@ -4892,6 +5773,43 @@ async function saveAskConfigFromUi() {
   state.askThreads = (state.askThreads || []).map((t0) => (t0.id === updated.id ? updated : t0));
   renderAskThreads();
   renderAskThread();
+}
+
+async function saveDocsConfigFromUi() {
+  const token = getAdminToken();
+  if (!token) throw new Error('ADMIN_TOKEN_REQUIRED');
+  const thread = selectedDocsThread();
+  if (!thread) throw new Error('DOC_THREAD_NOT_FOUND');
+
+  const cfg = readConfigJson(thread.configJson);
+  const provider = String(q('#docsProviderSelect').value || '').trim() || thread.provider;
+  if (!provider) throw new Error('PROVIDER_REQUIRED');
+
+  const model = q('#docsModelInput').value.trim();
+  const effort = q('#docsEffortSelect').value;
+  const sandbox = q('#docsSandboxSelect').value;
+
+  const docKind = getDocsThreadKind(thread) || normalizeDocsKind(state.docsKind);
+  if (!docKind) throw new Error('DOC_KIND_REQUIRED');
+
+  cfg.docKind = docKind;
+  if (!cfg.systemPromptPath) cfg.systemPromptPath = 'prompts/doc_writer_system.md';
+  cfg.sandbox = sandbox || cfg.sandbox || 'workspace-write';
+
+  if (model) cfg.model = model;
+  else delete cfg.model;
+  if (effort) cfg.model_reasoning_effort = effort;
+  else delete cfg.model_reasoning_effort;
+
+  const updated = await fetchJson(`/api/ask/threads/${encodeURIComponent(thread.id)}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ provider, config: cfg }),
+  });
+
+  state.docsThreads = (state.docsThreads || []).map((t0) => (t0.id === updated.id ? updated : t0));
+  renderDocsThreads();
+  renderDocsThread();
 }
 
 async function resetAskResumeFromUi() {
@@ -5296,6 +6214,21 @@ async function ensureWorkspaceDataForCurrentPage() {
     return;
   }
 
+  if (p === 'docs') {
+    renderDocsTabs();
+    if (!getAdminToken()) {
+      renderDocsThreads();
+      renderDocsThread();
+      clearDocsPreviewState();
+      state.docsPreviewError = 'ADMIN_TOKEN_REQUIRED';
+      renderDocsPreview();
+      return;
+    }
+    await loadDocsThreads(workspaceId).catch(toast);
+    await loadDocsPreview().catch(() => {});
+    return;
+  }
+
   if (p === 'files') {
     await loadFilesList(workspaceId, state.filesDir).catch(toast);
   }
@@ -5372,6 +6305,23 @@ async function applyWorkspaceChange(nextWorkspaceId, options = {}) {
   state.askRecovering = false;
   state.askForceScrollToBottom = false;
   state.askDebugText = '';
+  state.docsThreadId = null;
+  state.docsThreads = [];
+  state.docsThreadsSig = null;
+  state.docsThreadFilter = '';
+  state.docsMessages = [];
+  state.docsMessagesSig = null;
+  state.docsQueueItems = [];
+  state.docsQueueSig = null;
+  state.docsMessageOpen = {};
+  state.docsSendInFlight = false;
+  state.docsRecovering = false;
+  state.docsLastSendThreadId = null;
+  state.docsLastSendStartedAt = null;
+  state.docsLastSendEndedAt = null;
+  state.docsLastSendElapsedMs = null;
+  state.docsDebugText = '';
+  clearDocsPreviewState();
 
   clearAskPoll();
   closeAskSse();
@@ -5392,6 +6342,8 @@ async function applyWorkspaceChange(nextWorkspaceId, options = {}) {
   renderAskMessages();
   renderAskQueue();
   renderAskThread();
+  renderDocsThreads();
+  renderDocsPreview();
   renderHomeConfigList();
   renderHome();
 
@@ -5430,6 +6382,9 @@ function rerenderAll() {
   renderAskThreads();
   renderAskMessages();
   renderAskThread();
+  renderDocsThreads();
+  renderDocsThread();
+  renderDocsPreview();
   renderFiles();
   renderCapabilities();
   q('#sseStatus').textContent = t(state.sseStatusKey || 'sse.idle');
@@ -5495,9 +6450,10 @@ function initNav() {
 
 function initTabs() {
   qa('.tabs__btn').forEach((btn) => {
+    if (!btn.dataset.tab) return;
     btn.addEventListener('click', () => setTab(btn.dataset.tab));
   });
-  setTab('manager');
+  if (q('#tab-manager')) setTab('manager');
 }
 
 function initHandlers() {
@@ -5820,6 +6776,29 @@ function initHandlers() {
   q('#askModelInput').addEventListener('input', () => {
     syncModelPresetSelectToInput(q('#askModelPreset'), q('#askModelInput'));
   });
+  const docsProviderSelect = q('#docsProviderSelect');
+  if (docsProviderSelect) {
+    docsProviderSelect.addEventListener('change', (e) => {
+      const provider = e.target.value || 'codex';
+      setModelInputProvider(q('#docsModelInput'), provider);
+      refreshModelPresetSelect(q('#docsModelPreset'), q('#docsModelInput'), provider);
+    });
+  }
+  const docsModelPreset = q('#docsModelPreset');
+  if (docsModelPreset) {
+    docsModelPreset.addEventListener('change', (e) => {
+      const v = String(e.target.value || '').trim();
+      if (!v) return;
+      q('#docsModelInput').value = v;
+      syncModelPresetSelectToInput(q('#docsModelPreset'), q('#docsModelInput'));
+    });
+  }
+  const docsModelInput = q('#docsModelInput');
+  if (docsModelInput) {
+    docsModelInput.addEventListener('input', () => {
+      syncModelPresetSelectToInput(q('#docsModelPreset'), q('#docsModelInput'));
+    });
+  }
 
   q('#editSessionSelect').addEventListener('change', (e) => fillEditSessionForm(e.target.value));
   q('#saveSessionBtn').addEventListener('click', () => saveEditedSession().catch(toast));
@@ -5851,6 +6830,7 @@ function initHandlers() {
 
   q('#loadPlanBtn').addEventListener('click', () => openWorkspaceDocModal('plan').catch(toast));
   q('#loadConventionBtn').addEventListener('click', () => openWorkspaceDocModal('convention').catch(toast));
+  q('#loadRequirementsBtn').addEventListener('click', () => openWorkspaceDocModal('requirements').catch(toast));
   q('#loadDigestBtn').addEventListener('click', () => loadDigest(state.workspaceId).catch(toast));
 
   q('#mdKindSelect').addEventListener('change', (e) => {
@@ -5935,6 +6915,27 @@ function initHandlers() {
     if (!item) return;
     selectAskThreadById(item.dataset.askThreadId).catch(toast);
   });
+  qa('[data-doc-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => setDocsKind(btn.dataset.docTab));
+  });
+  const docsThreadSearch = q('#docsThreadSearch');
+  if (docsThreadSearch) {
+    docsThreadSearch.addEventListener('input', (e) => {
+      state.docsThreadFilter = e.target.value || '';
+      renderDocsThreads();
+    });
+  }
+  const docsNewThreadBtn = q('#docsNewThreadBtn');
+  if (docsNewThreadBtn) docsNewThreadBtn.addEventListener('click', () => createDocsThreadFromUi().catch(toast));
+  const docsThreadsList = q('#docsThreadsList');
+  if (docsThreadsList) {
+    docsThreadsList.addEventListener('click', (e) => {
+      const targetEl = eventTargetElement(e.target);
+      const item = targetEl ? targetEl.closest('[data-doc-thread-id]') : null;
+      if (!item) return;
+      selectDocsThreadById(item.dataset.docThreadId).catch(toast);
+    });
+  }
   const loadMoreBtn = q('#askLoadMoreBtn');
   if (loadMoreBtn) loadMoreBtn.addEventListener('click', () => loadMoreAskMessagesFromUi().catch(toast));
   const loadAllBtn = q('#askLoadAllBtn');
@@ -5947,6 +6948,29 @@ function initHandlers() {
       sendAskFromUi().catch(toast);
     }
   });
+  const docsSendBtn = q('#docsSendBtn');
+  if (docsSendBtn) docsSendBtn.addEventListener('click', () => sendDocsFromUi().catch(toast));
+  const docsStopBtn = q('#docsStopBtn');
+  if (docsStopBtn) docsStopBtn.addEventListener('click', () => stopDocsFromUi().catch(toast));
+  const docsInput = q('#docsInput');
+  if (docsInput) {
+    docsInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        sendDocsFromUi().catch(toast);
+      }
+    });
+  }
+  const docsPreviewRefreshBtn = q('#docsPreviewRefreshBtn');
+  if (docsPreviewRefreshBtn) docsPreviewRefreshBtn.addEventListener('click', () => loadDocsPreview().catch(() => {}));
+  const docsPreviewToggle = q('#docsPreviewRenderToggle');
+  if (docsPreviewToggle) {
+    docsPreviewToggle.checked = Boolean(state.docsPreviewRenderMarkdown);
+    docsPreviewToggle.addEventListener('change', (e) => {
+      state.docsPreviewRenderMarkdown = Boolean(e.target.checked);
+      renderDocsPreview();
+    });
+  }
   q('#askExportMdBtn').addEventListener('click', () => exportAskThread('md').catch(toast));
   q('#askExportJsonlBtn').addEventListener('click', () => exportAskThread('jsonl').catch(toast));
   const askMdToggle = q('#askRenderMdToggle');
@@ -5960,6 +6984,8 @@ function initHandlers() {
   }
   q('#askSaveTitleBtn').addEventListener('click', () => saveAskTitleFromUi().catch(toast));
   q('#askSaveConfigBtn').addEventListener('click', () => saveAskConfigFromUi().catch(toast));
+  const docsSaveConfigBtn = q('#docsSaveConfigBtn');
+  if (docsSaveConfigBtn) docsSaveConfigBtn.addEventListener('click', () => saveDocsConfigFromUi().catch(toast));
   q('#askResetResumeBtn').addEventListener('click', () => resetAskResumeFromUi().catch(toast));
   q('#askDeleteThreadBtn').addEventListener('click', () => deleteAskThreadFromUi().catch(toast));
 }

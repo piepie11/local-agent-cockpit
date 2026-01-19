@@ -10,6 +10,30 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function parsePromptLine(prompt, key) {
+  const re = new RegExp(`^${key}\\s*:\\s*(.+)$`, 'm');
+  const match = String(prompt || '').match(re);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function parsePromptUserText(prompt) {
+  const text = String(prompt || '');
+  const match = text.match(/\nUSER:\n([\s\S]*)$/);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function resolveDocTarget({ cwd, targetRel }) {
+  const rel = String(targetRel || '').trim();
+  if (!rel) throw new Error('DOC_TARGET_REL_REQUIRED');
+  if (path.isAbsolute(rel)) throw new Error(`DOC_TARGET_REL_NOT_RELATIVE path=${rel}`);
+  const abs = path.resolve(cwd, rel);
+  const relCheck = path.relative(cwd, abs);
+  if (!relCheck || relCheck.startsWith('..') || path.isAbsolute(relCheck)) {
+    throw new Error(`DOC_TARGET_OUTSIDE_WORKSPACE path=${abs}`);
+  }
+  return { abs, rel };
+}
+
 async function sleepWithAbort(ms, abortSignal) {
   const delay = Math.max(0, ms);
   if (!abortSignal) {
@@ -61,7 +85,18 @@ async function runFakeExec({
   const usedResume = wantResume && Boolean(resumeId);
   const providerSessionId = wantResume ? (resumeId || `fake-${randomUUID()}`) : null;
 
-  if (p.includes('ASK_MODE: true')) {
+  if (p.includes('DOC_MODE: true')) {
+    const targetRel = parsePromptLine(p, 'TARGET_FILE_REL');
+    if (sandbox !== 'workspace-write') {
+      throw new Error(`DOC_WRITE_FORBIDDEN sandbox=${sandbox}`);
+    }
+    const { abs, rel } = resolveDocTarget({ cwd, targetRel });
+    const userText = parsePromptUserText(p) || 'OK';
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    const content = `# Doc Writer Output\n\n${userText}\n`;
+    fs.writeFileSync(abs, content, 'utf-8');
+    lastMessage = `DOC_WRITE_OK: ${rel}`;
+  } else if (p.includes('ASK_MODE: true')) {
     const userLine = p.split(/\r?\n/g).slice(-1)[0] || '';
     lastMessage = `Fake ask answer: ${userLine || 'OK'}`;
   } else if (p.includes('\nMANAGER_PACKET:\n') || p.startsWith('MANAGER_PACKET:\n')) {

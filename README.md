@@ -1,4 +1,4 @@
-﻿# auto_codex
+﻿# local-agent-cockpit
 
 手机可用的 Web 控制台，用来编排 **Manager ↔ Executor** 回合制协作（目前以 **Codex CLI** 为主，Claude 作为后续扩展）。
 
@@ -62,6 +62,14 @@
 性能提示（大 workspace 更明显）：
 - 切换 workspace 时按当前页面懒加载数据（Dashboard/History/Sessions/Ask/Files），避免全量刷新导致卡顿。
 - Ask 页默认只加载最近 200 条消息；如需查看更多历史，可在消息区上方点击“加载更多/加载全部”。
+
+## 文档编写（Docs）页面
+
+- 在 workspace 新建/编辑时配置 `requirementsPath / planPath / conventionPath`（可用相对 `rootPath` 的路径）。
+- 进入 Docs 页面：在上方选择 tab（需求/计划/约定），点击“新建线程”创建对应文档的 thread。
+- 发送编写指令：输入内容后发送；默认 sandbox 为 `workspace-write`（允许写入 workspace 内文件）。
+- 预览区以磁盘文件为准：点击“刷新”手动拉取文件内容；需要时可关闭 Markdown 渲染开关查看纯文本。
+- 预期行为：Doc Writer 只会修改目标文件，不应写入其它路径（越界会报错）。
 
 ## Provider
 
@@ -129,3 +137,4 @@ pm run up）
   4) PUSHPLUS_TOKEN 是否正确
   5) 服务器是否能访问推送服务
   6) 是否被平台限频/限流
+

@@ -1,39 +1,39 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>auto_codex</title>
+    <title>local-agent-cockpit</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar__left">
-        <div class="topbar__title">auto_codex</div>
-        <select id="workspaceSelect" class="select" title="工作区" data-i18n-title="top.workspace_select_title"></select>
+        <div class="topbar__title">local-agent-cockpit</div>
+        <select id="workspaceSelect" class="select" title="宸ヤ綔鍖? data-i18n-title="top.workspace_select_title"></select>
         <button
           id="addWorkspaceBtn"
           class="btn btn--ghost"
-          title="添加工作区"
+          title="娣诲姞宸ヤ綔鍖?
           data-i18n="top.add"
           data-i18n-title="top.add_workspace_title"
         >
-          新增
+          鏂板
         </button>
-        <button id="openAskBtn" class="btn btn--ghost" title="Codex 用户窗口" data-i18n="top.ask" data-i18n-title="top.ask_title">
-          Codex 用户窗口
+        <button id="openAskBtn" class="btn btn--ghost" title="Codex 鐢ㄦ埛绐楀彛" data-i18n="top.ask" data-i18n-title="top.ask_title">
+          Codex 鐢ㄦ埛绐楀彛
         </button>
       </div>
       <div class="topbar__right">
-        <button id="langToggleBtn" class="btn btn--ghost" title="切换语言" data-i18n="top.lang_toggle" data-i18n-title="top.lang_toggle_title">
+        <button id="langToggleBtn" class="btn btn--ghost" title="鍒囨崲璇█" data-i18n="top.lang_toggle" data-i18n-title="top.lang_toggle_title">
           EN
         </button>
         <label class="token">
-          <span data-i18n="top.admin_token_label">口令（ADMIN_TOKEN）</span>
+          <span data-i18n="top.admin_token_label">鍙ｄ护锛圓DMIN_TOKEN锛?/span>
           <input
             id="adminToken"
             type="password"
-            placeholder="写操作必填"
+            placeholder="鍐欐搷浣滃繀濉?
             data-i18n-placeholder="top.admin_token_placeholder"
             autocomplete="off"
           />
@@ -43,20 +43,21 @@
 
     <main class="container">
       <nav class="nav">
-        <button class="nav__btn" data-page="home" data-i18n="nav.home">首页</button>
-        <button class="nav__btn" data-page="dashboard" data-i18n="nav.dashboard">控制台</button>
-        <button class="nav__btn" data-page="history" data-i18n="nav.history">历史</button>
-        <button class="nav__btn" data-page="sessions" data-i18n="nav.sessions">会话</button>
-        <button class="nav__btn" data-page="ask" data-i18n="nav.ask">Codex 用户窗口</button>
-        <button class="nav__btn" data-page="files" data-i18n="nav.files">文件</button>
-        <button class="nav__btn" data-page="settings" data-i18n="nav.settings">设置</button>
+        <button class="nav__btn" data-page="home" data-i18n="nav.home">棣栭〉</button>
+        <button class="nav__btn" data-page="dashboard" data-i18n="nav.dashboard">鎺у埗鍙?/button>
+        <button class="nav__btn" data-page="history" data-i18n="nav.history">鍘嗗彶</button>
+        <button class="nav__btn" data-page="sessions" data-i18n="nav.sessions">浼氳瘽</button>
+        <button class="nav__btn" data-page="ask" data-i18n="nav.ask">Codex 鐢ㄦ埛绐楀彛</button>
+        <button class="nav__btn" data-page="docs" data-i18n="nav.docs">Doc Writer</button>
+        <button class="nav__btn" data-page="files" data-i18n="nav.files">鏂囦欢</button>
+        <button class="nav__btn" data-page="settings" data-i18n="nav.settings">璁剧疆</button>
       </nav>
 
       <section id="page-home" class="page card hidden">
         <div class="row">
-          <h2 data-i18n="home.title">首页</h2>
-          <button id="homeRefreshBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
-          <button id="homeConfigBtn" class="btn btn--ghost" data-i18n="home.configure">配置</button>
+          <h2 data-i18n="home.title">棣栭〉</h2>
+          <button id="homeRefreshBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
+          <button id="homeConfigBtn" class="btn btn--ghost" data-i18n="home.configure">閰嶇疆</button>
           <div id="homeStatus" class="hint mono"></div>
         </div>
         <div id="homeWorkspaceList" class="homeGrid"></div>
@@ -66,70 +67,73 @@
         <div id="onboardingEmptyWorkspace" class="onboarding hidden">
           <div class="onboarding__header">
             <div>
-              <div class="onboarding__title" data-i18n="onboarding.title">新手引导：先跑通最小闭环</div>
-              <div class="onboarding__subtitle" data-i18n="onboarding.subtitle">按 3 步走通：设置 token → 新建 workspace → Start/Step</div>
+              <div class="onboarding__title" data-i18n="onboarding.title">鏂版墜寮曞锛氬厛璺戦€氭渶灏忛棴鐜?/div>
+              <div class="onboarding__subtitle" data-i18n="onboarding.subtitle">鎸?3 姝ヨ蛋閫氾細璁剧疆 token 鈫?鏂板缓 workspace 鈫?Start/Step</div>
             </div>
-            <button id="onboardingDismissBtn" class="btn btn--ghost" data-i18n="onboarding.dismiss">不再提示</button>
+            <button id="onboardingDismissBtn" class="btn btn--ghost" data-i18n="onboarding.dismiss">涓嶅啀鎻愮ず</button>
           </div>
           <ol class="onboarding__steps">
-            <li data-i18n="onboarding.step1">Step 1：设置 ADMIN_TOKEN（右上角）</li>
-            <li data-i18n="onboarding.step2">Step 2：点击“新增”创建 workspace（rootPath / planPath）</li>
-            <li data-i18n="onboarding.step3">Step 3：Load plan 后 Start/Step（或打开 Codex 用户窗口发送一条消息）</li>
+            <li data-i18n="onboarding.step1">Step 1锛氳缃?ADMIN_TOKEN锛堝彸涓婅锛?/li>
+            <li data-i18n="onboarding.step2">Step 2锛氱偣鍑烩€滄柊澧炩€濆垱寤?workspace锛坮ootPath / planPath锛?/li>
+            <li data-i18n="onboarding.step3">Step 3锛歀oad plan 鍚?Start/Step锛堟垨鎵撳紑 Codex 鐢ㄦ埛绐楀彛鍙戦€佷竴鏉℃秷鎭級</li>
           </ol>
-          <div class="onboarding__note" data-i18n="onboarding.ask_note">提示：Codex 用户窗口 = 用户直接对话窗口（provider 直聊）</div>
+          <div class="onboarding__note" data-i18n="onboarding.ask_note">鎻愮ず锛欳odex 鐢ㄦ埛绐楀彛 = 鐢ㄦ埛鐩存帴瀵硅瘽绐楀彛锛坧rovider 鐩磋亰锛?/div>
         </div>
 
         <div class="grid2">
           <div>
-            <h2 data-i18n="dash.workspace">工作区</h2>
+            <h2 data-i18n="dash.workspace">宸ヤ綔鍖?/h2>
             <div class="kv">
-              <div class="kv__k" data-i18n="dash.kv.name">名称</div>
+              <div class="kv__k" data-i18n="dash.kv.name">鍚嶇О</div>
               <div id="wsName" class="kv__v">-</div>
-              <div class="kv__k" data-i18n="dash.kv.root">根目录</div>
+              <div class="kv__k" data-i18n="dash.kv.root">鏍圭洰褰?/div>
               <div id="wsRoot" class="kv__v mono">-</div>
-              <div class="kv__k" data-i18n="dash.kv.plan">计划</div>
+              <div class="kv__k" data-i18n="dash.kv.plan">璁″垝</div>
               <div id="wsPlan" class="kv__v mono">-</div>
-              <div class="kv__k" data-i18n="dash.kv.convention">约定</div>
+              <div class="kv__k" data-i18n="dash.kv.convention">绾﹀畾</div>
               <div id="wsConvention" class="kv__v mono">-</div>
+              <div class="kv__k" data-i18n="dash.kv.requirements">??</div>
+              <div id="wsRequirements" class="kv__v mono">-</div>
             </div>
             <div class="row">
-              <button id="loadPlanBtn" class="btn btn--ghost" data-i18n="dash.load_plan">加载计划</button>
-              <button id="loadConventionBtn" class="btn btn--ghost" data-i18n="dash.load_convention">加载约定</button>
-              <button id="loadDigestBtn" class="btn btn--ghost" data-i18n="dash.load_digest">加载 repoDigest</button>
-              <button id="editWorkspaceBtn" class="btn btn--ghost" data-i18n="dash.edit_workspace">编辑</button>
+              <button id="loadPlanBtn" class="btn btn--ghost" data-i18n="dash.load_plan">鍔犺浇璁″垝</button>
+              <button id="loadConventionBtn" class="btn btn--ghost" data-i18n="dash.load_convention">鍔犺浇绾﹀畾</button>
+              <button id="loadRequirementsBtn" class="btn btn--ghost" data-i18n="dash.load_requirements">????</button>
+              <button id="loadDigestBtn" class="btn btn--ghost" data-i18n="dash.load_digest">鍔犺浇 repoDigest</button>
+              <button id="editWorkspaceBtn" class="btn btn--ghost" data-i18n="dash.edit_workspace">缂栬緫</button>
             </div>
           </div>
 
           <div>
-            <h2 data-i18n="dash.sessions">会话</h2>
+            <h2 data-i18n="dash.sessions">浼氳瘽</h2>
             <div class="row">
               <label class="field">
-                <span data-i18n="role.manager">主管</span>
+                <span data-i18n="role.manager">涓荤</span>
                 <select id="managerSessionSelect" class="select"></select>
               </label>
               <label class="field">
-                <span data-i18n="role.executor">执行者</span>
+                <span data-i18n="role.executor">鎵ц鑰?/span>
                 <select id="executorSessionSelect" class="select"></select>
               </label>
             </div>
             <div class="row">
-              <button id="createDefaultSessionsBtn" class="btn" data-i18n="dash.create_default_sessions">创建默认会话</button>
+              <button id="createDefaultSessionsBtn" class="btn" data-i18n="dash.create_default_sessions">鍒涘缓榛樿浼氳瘽</button>
             </div>
             <div class="grid2">
               <div>
-                <div class="hint" data-i18n="dash.selected_manager_session">已选主管会话（属性）</div>
-                <div id="managerSessionInfo" class="sessionInfo">(无)</div>
+                <div class="hint" data-i18n="dash.selected_manager_session">宸查€変富绠′細璇濓紙灞炴€э級</div>
+                <div id="managerSessionInfo" class="sessionInfo">(鏃?</div>
                 <details class="details">
-                  <summary data-i18n="dash.session_info_raw_config">原始配置（JSON）</summary>
-                  <pre id="managerSessionInfoRaw" class="pre mono">(无)</pre>
+                  <summary data-i18n="dash.session_info_raw_config">鍘熷閰嶇疆锛圝SON锛?/summary>
+                  <pre id="managerSessionInfoRaw" class="pre mono">(鏃?</pre>
                 </details>
               </div>
               <div>
-                <div class="hint" data-i18n="dash.selected_executor_session">已选执行者会话（属性）</div>
-                <div id="executorSessionInfo" class="sessionInfo">(无)</div>
+                <div class="hint" data-i18n="dash.selected_executor_session">宸查€夋墽琛岃€呬細璇濓紙灞炴€э級</div>
+                <div id="executorSessionInfo" class="sessionInfo">(鏃?</div>
                 <details class="details">
-                  <summary data-i18n="dash.session_info_raw_config">原始配置（JSON）</summary>
-                  <pre id="executorSessionInfoRaw" class="pre mono">(无)</pre>
+                  <summary data-i18n="dash.session_info_raw_config">鍘熷閰嶇疆锛圝SON锛?/summary>
+                  <pre id="executorSessionInfoRaw" class="pre mono">(鏃?</pre>
                 </details>
               </div>
             </div>
@@ -140,18 +144,18 @@
 
         <div class="grid2">
           <div>
-            <h2 data-i18n="dash.run">运行</h2>
+            <h2 data-i18n="dash.run">杩愯</h2>
             <div class="row">
               <select id="runSelect" class="select"></select>
-              <button id="createRunBtn" class="btn" data-i18n="dash.create_run">创建运行</button>
+              <button id="createRunBtn" class="btn" data-i18n="dash.create_run">鍒涘缓杩愯</button>
             </div>
             <div class="row">
               <label class="field field--inline">
-                <span data-i18n="run.maxTurns">最大回合</span>
+                <span data-i18n="run.maxTurns">鏈€澶у洖鍚?/span>
                 <input id="optMaxTurns" class="input input--sm" type="number" value="1000" min="1" />
               </label>
               <label class="field field--inline">
-                <span data-i18n="run.timeoutMin">超时（分钟）</span>
+                <span data-i18n="run.timeoutMin">瓒呮椂锛堝垎閽燂級</span>
                 <input id="optTimeoutMin" class="input input--sm" type="number" value="200" min="1" />
               </label>
               <label class="check">
@@ -160,57 +164,57 @@
               </label>
               <label class="check">
                 <input id="optRequireGitClean" type="checkbox" />
-                <span data-i18n="run.requireGitClean">要求 git 干净</span>
+                <span data-i18n="run.requireGitClean">瑕佹眰 git 骞插噣</span>
               </label>
               <label class="check">
                 <input id="optDangerousGuard" type="checkbox" />
-                <span data-i18n="run.cmdGuard">危险命令防护</span>
+                <span data-i18n="run.cmdGuard">鍗遍櫓鍛戒护闃叉姢</span>
               </label>
               <label class="field field--inline">
-                <span data-i18n="run.noProgressLimit">无进展上限</span>
+                <span data-i18n="run.noProgressLimit">鏃犺繘灞曚笂闄?/span>
                 <input id="optNoProgressLimit" class="input input--sm" type="number" value="20" min="0" />
               </label>
             </div>
             <div class="row">
-              <button id="startRunBtn" class="btn" data-i18n="dash.start">开始</button>
-              <button id="stepRunBtn" class="btn btn--accent" data-i18n="dash.step">单步</button>
-              <button id="pauseRunBtn" class="btn btn--ghost" data-i18n="dash.pause">暂停</button>
-              <button id="stopRunBtn" class="btn btn--danger" data-i18n="dash.stop">停止</button>
+              <button id="startRunBtn" class="btn" data-i18n="dash.start">寮€濮?/button>
+              <button id="stepRunBtn" class="btn btn--accent" data-i18n="dash.step">鍗曟</button>
+              <button id="pauseRunBtn" class="btn btn--ghost" data-i18n="dash.pause">鏆傚仠</button>
+              <button id="stopRunBtn" class="btn btn--danger" data-i18n="dash.stop">鍋滄</button>
             </div>
             <div class="kv">
-              <div class="kv__k" data-i18n="dash.kv.status">状态</div>
+              <div class="kv__k" data-i18n="dash.kv.status">鐘舵€?/div>
               <div id="runStatus" class="kv__v">-</div>
-              <div class="kv__k" data-i18n="dash.kv.turn">回合</div>
+              <div class="kv__k" data-i18n="dash.kv.turn">鍥炲悎</div>
               <div id="runTurn" class="kv__v">-</div>
-              <div class="kv__k" data-i18n="dash.kv.sse">推送</div>
+              <div class="kv__k" data-i18n="dash.kv.sse">鎺ㄩ€?/div>
               <div id="sseStatus" class="kv__v">-</div>
             </div>
           </div>
 
           <div>
-            <h2 data-i18n="dash.inject_export">插话 / 导出</h2>
+            <h2 data-i18n="dash.inject_export">鎻掕瘽 / 瀵煎嚭</h2>
             <div class="row">
               <select id="injectTarget" class="select">
-                <option value="manager" data-i18n="role.manager_opt">主管（manager）</option>
-                <option value="executor" data-i18n="role.executor_opt">执行者（executor）</option>
+                <option value="manager" data-i18n="role.manager_opt">涓荤锛坢anager锛?/option>
+                <option value="executor" data-i18n="role.executor_opt">鎵ц鑰咃紙executor锛?/option>
               </select>
-              <input id="injectMessage" class="input" placeholder="消息…" data-i18n-placeholder="dash.inject_placeholder" />
-              <button id="injectSendBtn" class="btn" data-i18n="dash.send">发送</button>
+              <input id="injectMessage" class="input" placeholder="娑堟伅鈥? data-i18n-placeholder="dash.inject_placeholder" />
+              <button id="injectSendBtn" class="btn" data-i18n="dash.send">鍙戦€?/button>
             </div>
             <div class="row">
-              <button id="exportMdBtn" class="btn btn--ghost" data-i18n="dash.export_md">导出 .md</button>
-              <button id="exportJsonBtn" class="btn btn--ghost" data-i18n="dash.export_json">导出 .json</button>
-              <button id="exportJsonlBtn" class="btn btn--ghost" data-i18n="dash.export_jsonl">导出 .jsonl</button>
+              <button id="exportMdBtn" class="btn btn--ghost" data-i18n="dash.export_md">瀵煎嚭 .md</button>
+              <button id="exportJsonBtn" class="btn btn--ghost" data-i18n="dash.export_json">瀵煎嚭 .json</button>
+              <button id="exportJsonlBtn" class="btn btn--ghost" data-i18n="dash.export_jsonl">瀵煎嚭 .jsonl</button>
             </div>
             <div class="row">
               <input
                 id="rolloverReason"
                 class="input"
-                placeholder="换血原因（可选）…"
+                placeholder="鎹㈣鍘熷洜锛堝彲閫夛級鈥?
                 data-i18n-placeholder="dash.rollover_reason_placeholder"
               />
-              <button id="rolloverManagerBtn" class="btn btn--ghost" data-i18n="dash.rollover_manager">主管换血</button>
-              <button id="rolloverExecutorBtn" class="btn btn--ghost" data-i18n="dash.rollover_executor">执行者换血</button>
+              <button id="rolloverManagerBtn" class="btn btn--ghost" data-i18n="dash.rollover_manager">涓荤鎹㈣</button>
+              <button id="rolloverExecutorBtn" class="btn btn--ghost" data-i18n="dash.rollover_executor">鎵ц鑰呮崲琛€</button>
             </div>
           </div>
         </div>
@@ -218,232 +222,230 @@
         <hr class="sep" />
 
         <div class="tabs">
-          <button class="tabs__btn" data-tab="manager" data-i18n="tab.manager">主管</button>
-          <button class="tabs__btn" data-tab="executor" data-i18n="tab.executor">执行者</button>
-          <button class="tabs__btn" data-tab="events" data-i18n="tab.events">事件</button>
-          <button class="tabs__btn" data-tab="plan" data-i18n="tab.plan">计划</button>
+          <button class="tabs__btn" data-tab="manager" data-i18n="tab.manager">涓荤</button>
+          <button class="tabs__btn" data-tab="executor" data-i18n="tab.executor">鎵ц鑰?/button>
+          <button class="tabs__btn" data-tab="events" data-i18n="tab.events">浜嬩欢</button>
+          <button class="tabs__btn" data-tab="plan" data-i18n="tab.plan">璁″垝</button>
           <button class="tabs__btn" data-tab="digest" data-i18n="tab.digest">repoDigest</button>
         </div>
 
         <div id="tab-manager" class="tab">
-          <pre id="managerFeed" class="pre">(无数据)</pre>
+          <pre id="managerFeed" class="pre">(鏃犳暟鎹?</pre>
         </div>
         <div id="tab-executor" class="tab hidden">
-          <pre id="executorFeed" class="pre">(无数据)</pre>
+          <pre id="executorFeed" class="pre">(鏃犳暟鎹?</pre>
         </div>
         <div id="tab-events" class="tab hidden">
-          <pre id="eventsFeed" class="pre">(无数据)</pre>
+          <pre id="eventsFeed" class="pre">(鏃犳暟鎹?</pre>
         </div>
         <div id="tab-plan" class="tab hidden">
           <div class="row">
             <select id="mdKindSelect" class="select">
-              <option value="plan" data-i18n="md.kind_plan">计划</option>
-              <option value="convention" data-i18n="md.kind_convention">约定</option>
-              <option value="path" data-i18n="md.kind_path">文件</option>
+              <option value="plan" data-i18n="md.kind_plan">璁″垝</option>
+              <option value="convention" data-i18n="md.kind_convention">绾﹀畾</option>
+              <option value="path" data-i18n="md.kind_path">鏂囦欢</option>
             </select>
             <input
               id="mdPathInput"
               class="input hidden"
-              placeholder="相对工作区根目录，例如 docs/plan.md"
+              placeholder="鐩稿宸ヤ綔鍖烘牴鐩綍锛屼緥濡?docs/plan.md"
               data-i18n-placeholder="md.path_placeholder"
             />
-            <button id="loadMdBtn" class="btn btn--ghost" data-i18n="md.load">加载</button>
+            <button id="loadMdBtn" class="btn btn--ghost" data-i18n="md.load">鍔犺浇</button>
           </div>
-          <div id="mdInfo" class="hint mono">(未加载)</div>
-          <pre id="planText" class="pre">(未加载)</pre>
+          <div id="mdInfo" class="hint mono">(鏈姞杞?</div>
+          <pre id="planText" class="pre">(鏈姞杞?</pre>
         </div>
         <div id="tab-digest" class="tab hidden">
-          <pre id="digestText" class="pre">(未加载)</pre>
+          <pre id="digestText" class="pre">(鏈姞杞?</pre>
         </div>
       </section>
 
       <section id="page-history" class="page card hidden">
-        <h2 data-i18n="history.title">历史</h2>
+        <h2 data-i18n="history.title">鍘嗗彶</h2>
         <div class="row">
-          <button id="historyToggleListBtn" class="btn btn--ghost" data-i18n="history.toggle_list_hide">收起列表</button>
-          <button id="refreshHistoryBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
-          <input id="historyFilter" class="input" placeholder="按 id/状态过滤…" data-i18n-placeholder="history.filter_placeholder" />
+          <button id="historyToggleListBtn" class="btn btn--ghost" data-i18n="history.toggle_list_hide">鏀惰捣鍒楄〃</button>
+          <button id="refreshHistoryBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
+          <input id="historyFilter" class="input" placeholder="鎸?id/鐘舵€佽繃婊も€? data-i18n-placeholder="history.filter_placeholder" />
         </div>
         <div id="historyGrid" class="grid2">
           <div id="historyListPanel">
-            <div id="historyList" class="list">(无运行)</div>
+            <div id="historyList" class="list">(鏃犺繍琛?</div>
           </div>
           <div>
             <div class="row">
-              <button id="historyToDashboardBtn" class="btn btn--ghost" data-i18n="history.open_in_dashboard">在控制台打开</button>
-              <button id="historyExportMdBtn" class="btn btn--ghost" data-i18n="dash.export_md">导出 .md</button>
-              <button id="historyExportJsonBtn" class="btn btn--ghost" data-i18n="dash.export_json">导出 .json</button>
+              <button id="historyToDashboardBtn" class="btn btn--ghost" data-i18n="history.open_in_dashboard">鍦ㄦ帶鍒跺彴鎵撳紑</button>
+              <button id="historyExportMdBtn" class="btn btn--ghost" data-i18n="dash.export_md">瀵煎嚭 .md</button>
+              <button id="historyExportJsonBtn" class="btn btn--ghost" data-i18n="dash.export_json">瀵煎嚭 .json</button>
               <label class="check" data-i18n-title="md.render_title">
                 <input id="historyRenderMdToggle" type="checkbox" />
-                <span data-i18n="md.render">MD 渲染</span>
+                <span data-i18n="md.render">MD 娓叉煋</span>
               </label>
             </div>
             <div class="row">
               <input
                 id="historyTurnSearch"
                 class="input"
-                placeholder="在回合内容里搜索（prompt/output/commands）…"
+                placeholder="鍦ㄥ洖鍚堝唴瀹归噷鎼滅储锛坧rompt/output/commands锛夆€?
                 data-i18n-placeholder="history.turn_search_placeholder"
               />
             </div>
-            <div id="historyDetail" class="list">(请选择一个运行)</div>
+            <div id="historyDetail" class="list">(璇烽€夋嫨涓€涓繍琛?</div>
           </div>
         </div>
       </section>
 
       <section id="page-sessions" class="page card hidden">
-        <h2 data-i18n="sessions.title">会话</h2>
+        <h2 data-i18n="sessions.title">浼氳瘽</h2>
         <div class="row">
-          <button id="refreshSessionsBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
+          <button id="refreshSessionsBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
         </div>
-        <div id="sessionsList" class="list">(无会话)</div>
+        <div id="sessionsList" class="list">(鏃犱細璇?</div>
         <hr class="sep" />
-        <h3 data-i18n="sessions.create_title">创建会话</h3>
+        <h3 data-i18n="sessions.create_title">鍒涘缓浼氳瘽</h3>
         <div class="row">
-          <select id="newSessionProvider" class="select" title="提供方" data-i18n-title="sessions.new_provider_title">
+          <select id="newSessionProvider" class="select" title="鎻愪緵鏂? data-i18n-title="sessions.new_provider_title">
             <option value="codex">codex</option>
             <option value="claude">claude</option>
             <option value="fake">fake</option>
           </select>
           <select id="newSessionRole" class="select">
-            <option value="manager" data-i18n="role.manager_opt">主管（manager）</option>
-            <option value="executor" data-i18n="role.executor_opt">执行者（executor）</option>
+            <option value="manager" data-i18n="role.manager_opt">涓荤锛坢anager锛?/option>
+            <option value="executor" data-i18n="role.executor_opt">鎵ц鑰咃紙executor锛?/option>
           </select>
           <select id="newSessionSandbox" class="select">
-            <option value="read-only" data-i18n="sandbox.read_only">只读（read-only）</option>
-            <option value="workspace-write" data-i18n="sandbox.workspace_write">可写（workspace-write）</option>
-            <option value="danger-full-access" data-i18n="sandbox.danger_full_access">完全访问（danger-full-access）</option>
+            <option value="read-only" data-i18n="sandbox.read_only">鍙锛坮ead-only锛?/option>
+            <option value="workspace-write" data-i18n="sandbox.workspace_write">鍙啓锛坵orkspace-write锛?/option>
+            <option value="danger-full-access" data-i18n="sandbox.danger_full_access">瀹屽叏璁块棶锛坉anger-full-access锛?/option>
           </select>
-          <select id="newSessionMode" class="select" title="会话模式" data-i18n-title="sessions.new_mode_title">
-            <option value="" data-i18n="sessions.mode_default">mode（默认：stateful_resume）</option>
-            <option value="stateless_exec" data-i18n="sessions.mode_stateless">stateless_exec（一次性）</option>
-            <option value="stateful_resume" data-i18n="sessions.mode_resume">stateful_resume（续聊）</option>
+          <select id="newSessionMode" class="select" title="浼氳瘽妯″紡" data-i18n-title="sessions.new_mode_title">
+            <option value="" data-i18n="sessions.mode_default">mode锛堥粯璁わ細stateful_resume锛?/option>
+            <option value="stateless_exec" data-i18n="sessions.mode_stateless">stateless_exec锛堜竴娆℃€э級</option>
+            <option value="stateful_resume" data-i18n="sessions.mode_resume">stateful_resume锛堢画鑱婏級</option>
           </select>
           <input
             id="newSessionPromptPath"
             class="input"
-            placeholder="systemPromptPath（例如 prompts/manager_system.md）"
+            placeholder="systemPromptPath锛堜緥濡?prompts/manager_system.md锛?
             data-i18n-placeholder="sessions.new_system_prompt_path_placeholder"
           />
           <select id="newSessionModelPreset" class="select input--sm" data-i18n-title="model.preset_title">
-            <option value="" data-i18n="model.preset_placeholder">model（预设）</option>
+            <option value="" data-i18n="model.preset_placeholder">model锛堥璁撅級</option>
           </select>
           <input
             id="newSessionModel"
             class="input input--sm"
-            placeholder="model（可选）"
+            placeholder="model锛堝彲閫夛級"
             data-i18n-placeholder="sessions.new_model_placeholder"
             list="modelOptionsCodex"
           />
           <select id="newSessionEffort" class="select" title="reasoning effort" data-i18n-title="sessions.new_effort_title">
-            <option value="" data-i18n="sessions.effort_default">effort（默认）</option>
+            <option value="" data-i18n="sessions.effort_default">effort锛堥粯璁わ級</option>
             <option value="low">low</option>
             <option value="medium">medium</option>
             <option value="high">high</option>
             <option value="xhigh">xhigh</option>
           </select>
-          <select id="newSessionOutputFormat" class="select" title="claude 输出格式" data-i18n-title="sessions.new_output_format_title">
-            <option value="" data-i18n="sessions.output_format_default">outputFormat（默认）</option>
+          <select id="newSessionOutputFormat" class="select" title="claude 杈撳嚭鏍煎紡" data-i18n-title="sessions.new_output_format_title">
+            <option value="" data-i18n="sessions.output_format_default">outputFormat锛堥粯璁わ級</option>
             <option value="text">text</option>
             <option value="json">json</option>
             <option value="stream-json">stream-json</option>
           </select>
-          <select id="newSessionPermissionMode" class="select" title="claude 权限模式" data-i18n-title="sessions.new_permission_mode_title">
-            <option value="" data-i18n="sessions.permission_mode_default">permissionMode（默认）</option>
+          <select id="newSessionPermissionMode" class="select" title="claude 鏉冮檺妯″紡" data-i18n-title="sessions.new_permission_mode_title">
+            <option value="" data-i18n="sessions.permission_mode_default">permissionMode锛堥粯璁わ級</option>
             <option value="default">default</option>
             <option value="dontAsk">dontAsk</option>
             <option value="acceptEdits">acceptEdits</option>
             <option value="plan">plan</option>
             <option value="bypassPermissions">bypassPermissions</option>
           </select>
-          <label class="check" title="claude：用 --tools '' 禁用工具" data-i18n-title="sessions.new_tools_disabled_title">
+          <label class="check" title="claude锛氱敤 --tools '' 绂佺敤宸ュ叿" data-i18n-title="sessions.new_tools_disabled_title">
             <input id="newSessionToolsDisabled" type="checkbox" />
-            <span data-i18n="sessions.tools_off">禁用工具</span>
+            <span data-i18n="sessions.tools_off">绂佺敤宸ュ叿</span>
           </label>
           <input
             id="newSessionTools"
             class="input input--sm"
-            placeholder="tools（可选，例如 default, Read,Edit）"
+            placeholder="tools锛堝彲閫夛紝渚嬪 default, Read,Edit锛?
             data-i18n-placeholder="sessions.new_tools_placeholder"
           />
-          <label class="check" title="claude：仅 stream-json 有效" data-i18n-title="sessions.new_include_partial_title">
+          <label class="check" title="claude锛氫粎 stream-json 鏈夋晥" data-i18n-title="sessions.new_include_partial_title">
             <input id="newSessionIncludePartial" type="checkbox" checked />
-            <span data-i18n="sessions.include_partial">包含 partial</span>
+            <span data-i18n="sessions.include_partial">鍖呭惈 partial</span>
           </label>
-          <label class="check" title="claude：将 session 落盘" data-i18n-title="sessions.new_session_persistence_title">
+          <label class="check" title="claude锛氬皢 session 钀界洏" data-i18n-title="sessions.new_session_persistence_title">
             <input id="newSessionSessionPersistence" type="checkbox" />
-            <span data-i18n="sessions.session_persistence">会话持久化</span>
+            <span data-i18n="sessions.session_persistence">浼氳瘽鎸佷箙鍖?/span>
           </label>
-          <button id="createSessionBtn" class="btn" data-i18n="sessions.create_btn">创建</button>
+          <button id="createSessionBtn" class="btn" data-i18n="sessions.create_btn">鍒涘缓</button>
         </div>
 
         <hr class="sep" />
-        <h3 data-i18n="sessions.edit_title">编辑会话</h3>
+        <h3 data-i18n="sessions.edit_title">缂栬緫浼氳瘽</h3>
         <div class="row">
-          <select id="editSessionSelect" class="select" title="会话" data-i18n-title="sessions.edit_session_select_title"></select>
-          <select id="editSessionProvider" class="select" title="提供方" data-i18n-title="sessions.edit_provider_title">
-            <option value="" data-i18n="sessions.edit_provider_keep">provider（保持不变）</option>
+          <select id="editSessionSelect" class="select" title="浼氳瘽" data-i18n-title="sessions.edit_session_select_title"></select>
+          <select id="editSessionProvider" class="select" title="鎻愪緵鏂? data-i18n-title="sessions.edit_provider_title">
+            <option value="" data-i18n="sessions.edit_provider_keep">provider锛堜繚鎸佷笉鍙橈級</option>
             <option value="codex">codex</option>
             <option value="claude">claude</option>
             <option value="fake">fake</option>
           </select>
-          <select id="editSessionSandbox" class="select" title="权限" data-i18n-title="sessions.edit_sandbox_title">
-            <option value="" data-i18n="sessions.edit_sandbox_keep">权限（保持不变）</option>
-            <option value="read-only" data-i18n="sandbox.read_only">只读（read-only）</option>
-            <option value="workspace-write" data-i18n="sandbox.workspace_write">可写（workspace-write）</option>
-            <option value="danger-full-access" data-i18n="sandbox.danger_full_access">完全访问（danger-full-access）</option>
+          <select id="editSessionSandbox" class="select" title="鏉冮檺" data-i18n-title="sessions.edit_sandbox_title">
+            <option value="" data-i18n="sessions.edit_sandbox_keep">鏉冮檺锛堜繚鎸佷笉鍙橈級</option>
+            <option value="read-only" data-i18n="sandbox.read_only">鍙锛坮ead-only锛?/option>
+            <option value="workspace-write" data-i18n="sandbox.workspace_write">鍙啓锛坵orkspace-write锛?/option>
+            <option value="danger-full-access" data-i18n="sandbox.danger_full_access">瀹屽叏璁块棶锛坉anger-full-access锛?/option>
           </select>
-          <select id="editSessionMode" class="select" title="模式" data-i18n-title="sessions.edit_mode_title">
-            <option value="" data-i18n="sessions.edit_mode_keep">mode（保持不变）</option>
-            <option value="stateless_exec" data-i18n="sessions.mode_stateless">stateless_exec（一次性）</option>
-            <option value="stateful_resume" data-i18n="sessions.mode_resume">stateful_resume（续聊）</option>
+          <select id="editSessionMode" class="select" title="妯″紡" data-i18n-title="sessions.edit_mode_title">
+            <option value="" data-i18n="sessions.edit_mode_keep">mode锛堜繚鎸佷笉鍙橈級</option>
+            <option value="stateless_exec" data-i18n="sessions.mode_stateless">stateless_exec锛堜竴娆℃€э級</option>
+            <option value="stateful_resume" data-i18n="sessions.mode_resume">stateful_resume锛堢画鑱婏級</option>
           </select>
           <select id="editSessionModelPreset" class="select input--sm" data-i18n-title="model.preset_title">
-            <option value="" data-i18n="model.preset_placeholder">model（预设）</option>
+            <option value="" data-i18n="model.preset_placeholder">model锛堥璁撅級</option>
           </select>
           <input
             id="editSessionModel"
             class="input input--sm"
-            placeholder="model（保持/留空）"
+            placeholder="model锛堜繚鎸?鐣欑┖锛?
             data-i18n-placeholder="sessions.edit_model_placeholder"
             list="modelOptionsCodex"
           />
           <select id="editSessionEffort" class="select" title="reasoning effort" data-i18n-title="sessions.edit_effort_title">
-            <option value="" data-i18n="sessions.effort_keep">effort（保持不变）</option>
+            <option value="" data-i18n="sessions.effort_keep">effort锛堜繚鎸佷笉鍙橈級</option>
             <option value="low">low</option>
             <option value="medium">medium</option>
             <option value="high">high</option>
             <option value="xhigh">xhigh</option>
           </select>
-          <button id="saveSessionBtn" class="btn" data-i18n="sessions.save">保存</button>
+          <button id="saveSessionBtn" class="btn" data-i18n="sessions.save">淇濆瓨</button>
           <button id="resetProviderSessionBtn" class="btn btn--ghost" data-i18n="sessions.reset_provider_session_id">
-            重置 providerSessionId
+            閲嶇疆 providerSessionId
           </button>
-          <button id="copySessionIdBtn" class="btn btn--ghost" data-i18n="sessions.copy_id">复制 id</button>
+          <button id="copySessionIdBtn" class="btn btn--ghost" data-i18n="sessions.copy_id">澶嶅埗 id</button>
         </div>
         <div class="hint" data-i18n="sessions.hint_reset">
-          注：Save/Reset 需要带 ADMIN_TOKEN；Reset 会清空 providerSessionId，下一次运行会重新创建 thread/session。
-        </div>
+          娉細Save/Reset 闇€瑕佸甫 ADMIN_TOKEN锛汻eset 浼氭竻绌?providerSessionId锛屼笅涓€娆¤繍琛屼細閲嶆柊鍒涘缓 thread/session銆?        </div>
 
         <hr class="sep" />
-        <h3 data-i18n="sessions.rollovers_title">换血记录</h3>
+        <h3 data-i18n="sessions.rollovers_title">鎹㈣璁板綍</h3>
         <div class="row">
-          <button id="refreshRolloversBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
+          <button id="refreshRolloversBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
         </div>
-        <div id="rolloversList" class="list">(无换血记录)</div>
+        <div id="rolloversList" class="list">(鏃犳崲琛€璁板綍)</div>
       </section>
 
       <section id="page-settings" class="page card hidden">
-        <h2 data-i18n="settings.title">设置</h2>
+        <h2 data-i18n="settings.title">璁剧疆</h2>
         <div class="row">
-          <button id="refreshHealthBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
+          <button id="refreshHealthBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
         </div>
-        <pre id="health" class="pre">(加载中…)</pre>
+        <pre id="health" class="pre">(鍔犺浇涓€?</pre>
         <hr class="sep" />
-        <h3 data-i18n="settings.allowed_roots_title">允许的 rootPath（白名单）</h3>
+        <h3 data-i18n="settings.allowed_roots_title">鍏佽鐨?rootPath锛堢櫧鍚嶅崟锛?/h3>
         <div class="hint" data-i18n="settings.allowed_roots_hint">
-          注：用于限制可注册 workspace 的目录范围；写入需要 ADMIN_TOKEN；修改会持久化到 DB 并立即生效（重启后仍有效）。
-        </div>
+          娉細鐢ㄤ簬闄愬埗鍙敞鍐?workspace 鐨勭洰褰曡寖鍥达紱鍐欏叆闇€瑕?ADMIN_TOKEN锛涗慨鏀逛細鎸佷箙鍖栧埌 DB 骞剁珛鍗崇敓鏁堬紙閲嶅惎鍚庝粛鏈夋晥锛夈€?        </div>
         <textarea
           id="allowedRootsEditor"
           class="input input--textarea mono"
@@ -452,28 +454,28 @@
           data-i18n-placeholder="settings.allowed_roots_placeholder"
         ></textarea>
         <div class="row">
-          <button id="allowedRootsLoadBtn" class="btn btn--ghost" data-i18n="settings.allowed_roots_load">从 health 填充</button>
-          <button id="allowedRootsSaveBtn" class="btn" data-i18n="settings.allowed_roots_save">保存</button>
-          <button id="allowedRootsResetBtn" class="btn btn--ghost" data-i18n="settings.allowed_roots_reset">恢复为环境变量</button>
+          <button id="allowedRootsLoadBtn" class="btn btn--ghost" data-i18n="settings.allowed_roots_load">浠?health 濉厖</button>
+          <button id="allowedRootsSaveBtn" class="btn" data-i18n="settings.allowed_roots_save">淇濆瓨</button>
+          <button id="allowedRootsResetBtn" class="btn btn--ghost" data-i18n="settings.allowed_roots_reset">鎭㈠涓虹幆澧冨彉閲?/button>
         </div>
         <div id="allowedRootsStatus" class="hint mono"></div>
         <div id="allowedRootsError" class="modal__error hidden"></div>
         <hr class="sep" />
-        <h3 data-i18n="settings.capabilities_title">能力探测</h3>
+        <h3 data-i18n="settings.capabilities_title">鑳藉姏鎺㈡祴</h3>
         <div class="row">
-          <button id="refreshCapabilitiesBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
-          <button id="probeCapabilitiesBtn" class="btn" data-i18n="settings.probe">探测</button>
+          <button id="refreshCapabilitiesBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
+          <button id="probeCapabilitiesBtn" class="btn" data-i18n="settings.probe">鎺㈡祴</button>
         </div>
-        <pre id="capabilities" class="pre">(未探测)</pre>
-        <div class="hint" data-i18n="settings.probe_hint">注：Probe 会执行本机 CLI 探测命令，需要带 ADMIN_TOKEN。</div>
+        <pre id="capabilities" class="pre">(鏈帰娴?</pre>
+        <div class="hint" data-i18n="settings.probe_hint">娉細Probe 浼氭墽琛屾湰鏈?CLI 鎺㈡祴鍛戒护锛岄渶瑕佸甫 ADMIN_TOKEN銆?/div>
         <hr class="sep" />
-        <h3 data-i18n="settings.add_workspace_title">添加工作区</h3>
+        <h3 data-i18n="settings.add_workspace_title">娣诲姞宸ヤ綔鍖?/h3>
         <div class="row">
-          <input id="wsAddName" class="input" placeholder="名称" data-i18n-placeholder="settings.ws_name_placeholder" />
+          <input id="wsAddName" class="input" placeholder="鍚嶇О" data-i18n-placeholder="settings.ws_name_placeholder" />
           <input
             id="wsAddRoot"
             class="input"
-            placeholder="rootPath（绝对路径）"
+            placeholder="rootPath锛堢粷瀵硅矾寰勶級"
             data-i18n-placeholder="settings.ws_root_placeholder"
           />
         </div>
@@ -481,52 +483,51 @@
           <input
             id="wsAddPlan"
             class="input"
-            placeholder="planPath（可选，绝对路径）"
+            placeholder="planPath锛堝彲閫夛紝缁濆璺緞锛?
             data-i18n-placeholder="settings.ws_plan_placeholder"
           />
           <input
             id="wsAddConvention"
             class="input"
-            placeholder="conventionPath（可选，绝对路径）"
+            placeholder="conventionPath锛堝彲閫夛紝缁濆璺緞锛?
             data-i18n-placeholder="settings.ws_convention_placeholder"
           />
-          <button id="wsAddSubmit" class="btn" data-i18n="settings.add_workspace_btn">添加工作区</button>
+          <button id="wsAddSubmit" class="btn" data-i18n="settings.add_workspace_btn">娣诲姞宸ヤ綔鍖?/button>
         </div>
         <div class="hint">
-          <span data-i18n="settings.workspace_hint">注：写接口必须带 ADMIN_TOKEN；workspace root 必须在 ALLOWED_WORKSPACE_ROOTS 白名单内。</span>
+          <span data-i18n="settings.workspace_hint">娉細鍐欐帴鍙ｅ繀椤诲甫 ADMIN_TOKEN锛泈orkspace root 蹇呴』鍦?ALLOWED_WORKSPACE_ROOTS 鐧藉悕鍗曞唴銆?/span>
         </div>
 
         <hr class="sep" />
-        <h3 data-i18n="settings.onboarding_title">新手引导</h3>
+        <h3 data-i18n="settings.onboarding_title">鏂版墜寮曞</h3>
         <div class="row">
-          <button id="resetOnboardingBtn" class="btn btn--ghost" data-i18n="settings.onboarding_reset">重置新手引导</button>
+          <button id="resetOnboardingBtn" class="btn btn--ghost" data-i18n="settings.onboarding_reset">閲嶇疆鏂版墜寮曞</button>
         </div>
-        <div class="hint" data-i18n="settings.onboarding_hint">清除“不再提示”，下次无 workspace 时会重新显示引导。</div>
+        <div class="hint" data-i18n="settings.onboarding_hint">娓呴櫎鈥滀笉鍐嶆彁绀衡€濓紝涓嬫鏃?workspace 鏃朵細閲嶆柊鏄剧ず寮曞銆?/div>
       </section>
 
       <section id="page-files" class="page card hidden">
         <div class="row">
-          <h2 data-i18n="files.title">文件</h2>
+          <h2 data-i18n="files.title">鏂囦欢</h2>
           <div class="hint" data-i18n="files.hint">
-            提示：无 ADMIN_TOKEN 时仅可只读浏览非隐藏文件；填写 ADMIN_TOKEN 后可浏览隐藏文件并编辑保存文本/Markdown。
-          </div>
+            鎻愮ず锛氭棤 ADMIN_TOKEN 鏃朵粎鍙彧璇绘祻瑙堥潪闅愯棌鏂囦欢锛涘～鍐?ADMIN_TOKEN 鍚庡彲娴忚闅愯棌鏂囦欢骞剁紪杈戜繚瀛樻枃鏈?Markdown銆?          </div>
         </div>
 
         <div class="filesGrid">
           <div>
             <div id="filesBreadcrumb" class="breadcrumb mono">/</div>
             <div class="row">
-              <button id="filesUpBtn" class="btn btn--ghost" data-i18n="files.up">上一级</button>
-              <input id="filesSearch" class="input" placeholder="搜索..." data-i18n-placeholder="files.search_placeholder" />
-              <button id="filesRefreshBtn" class="btn btn--ghost" data-i18n="common.refresh">刷新</button>
+              <button id="filesUpBtn" class="btn btn--ghost" data-i18n="files.up">涓婁竴绾?/button>
+              <input id="filesSearch" class="input" placeholder="鎼滅储..." data-i18n-placeholder="files.search_placeholder" />
+              <button id="filesRefreshBtn" class="btn btn--ghost" data-i18n="common.refresh">鍒锋柊</button>
             </div>
-            <div id="filesList" class="list">(无)</div>
+            <div id="filesList" class="list">(鏃?</div>
             <div id="filesListMeta" class="hint mono"></div>
           </div>
 
           <div>
             <div class="row">
-              <div id="filesSelectedPath" class="hint mono">(未选择文件)</div>
+              <div id="filesSelectedPath" class="hint mono">(鏈€夋嫨鏂囦欢)</div>
               <div id="filesSelectedMeta" class="pill pill--muted">-</div>
             </div>
             <div id="filesPreviewHint" class="hint"></div>
@@ -537,8 +538,8 @@
 
             <div id="filesTextPanel" class="hidden">
               <div class="row">
-                <button id="filesSaveBtn" class="btn btn--accent" data-i18n="files.save">保存</button>
-                <button id="filesReloadBtn" class="btn btn--ghost" data-i18n="files.reload">重新加载</button>
+                <button id="filesSaveBtn" class="btn btn--accent" data-i18n="files.save">淇濆瓨</button>
+                <button id="filesReloadBtn" class="btn btn--ghost" data-i18n="files.reload">閲嶆柊鍔犺浇</button>
                 <div id="filesEditStatus" class="hint mono"></div>
               </div>
               <textarea
@@ -549,73 +550,183 @@
               ></textarea>
             </div>
 
-            <div id="filesUnsupported" class="hint hidden" data-i18n="files.unsupported">(暂不支持预览)</div>
+            <div id="filesUnsupported" class="hint hidden" data-i18n="files.unsupported">(鏆備笉鏀寔棰勮)</div>
+          </div>
+        </div>
+      </section>
+
+            <section id="page-docs" class="page card hidden">
+        <div class="row">
+          <h2 data-i18n="docs.title">Doc Writer</h2>
+          <div class="hint" data-i18n="docs.hint">Doc writer placeholder.</div>
+        </div>
+        <div class="tabs">
+          <button class="tabs__btn tabs__btn--active" data-doc-tab="requirements" data-i18n="docs.tab.requirements">Requirements</button>
+          <button class="tabs__btn" data-doc-tab="plan" data-i18n="docs.tab.plan">Plan</button>
+          <button class="tabs__btn" data-doc-tab="convention" data-i18n="docs.tab.convention">Convention</button>
+        </div>
+        <div id="docsGrid" class="askGrid docsGrid">
+          <div id="docsThreadsPanel">
+            <h3 data-i18n="docs.threads_title">Threads</h3>
+            <div class="row">
+              <input id="docsThreadSearch" class="input" placeholder="Search" data-i18n-placeholder="docs.thread_search_placeholder" />
+              <button id="docsNewThreadBtn" class="btn" data-i18n="docs.new_thread">New thread</button>
+            </div>
+            <div id="docsThreadsList" class="list">(empty)</div>
+          </div>
+          <div id="docsChatPanel">
+            <div class="row">
+              <div id="docsThreadHeader" class="hint mono">(empty)</div>
+              <div class="pill-group">
+                <div id="docsStatusPill" class="pill" data-i18n="docs.status_idle">Idle</div>
+                <div id="docsElapsed" class="pill pill--muted">Elapsed ?</div>
+                <div id="docsUsage" class="pill pill--muted">Usage ?</div>
+              </div>
+            </div>
+            <div id="docsMessages" class="chat">(empty)</div>
+            <div class="row">
+              <textarea
+                id="docsInput"
+                class="input input--textarea"
+                placeholder="Write a doc instruction..."
+                data-i18n-placeholder="docs.input_placeholder"
+                rows="4"
+              ></textarea>
+              <button id="docsSendBtn" class="btn btn--accent" data-i18n="docs.send">Send</button>
+              <button id="docsStopBtn" class="btn btn--danger" data-i18n="docs.stop">Stop</button>
+            </div>
+            <div class="hint" data-i18n="docs.send_hint">Shortcut: Ctrl+Enter to send.</div>
+            <details class="details">
+              <summary data-i18n="docs.debug">Debug</summary>
+              <pre id="docsDebug" class="pre mono">(empty)</pre>
+            </details>
+            <div class="row">
+              <h3 data-i18n="docs.preview_title">Preview</h3>
+              <div class="row">
+                <button id="docsPreviewRefreshBtn" class="btn btn--ghost" data-i18n="docs.preview_refresh">Refresh</button>
+                <label class="check" data-i18n-title="md.render_title">
+                  <input id="docsPreviewRenderToggle" type="checkbox" />
+                  <span data-i18n="md.render">MD Render</span>
+                </label>
+              </div>
+            </div>
+            <div id="docsPreviewError" class="modal__error hidden"></div>
+            <div id="docsPreviewBody" class="pre docsPreview" data-i18n="docs.preview_placeholder">(preview)</div>
+          </div>
+          <div id="docsConfigPanel">
+            <h3 data-i18n="docs.config_title">Config</h3>
+            <div class="kv kv--wrap kv--compact">
+              <div class="kv__k">threadId</div>
+              <div id="docsThreadId" class="kv__v mono">-</div>
+              <div class="kv__k">resumeId</div>
+              <div id="docsResumeId" class="kv__v mono">-</div>
+              <div class="kv__k" data-i18n="ask.kv.provider">provider</div>
+              <div id="docsProviderView" class="kv__v mono">-</div>
+              <div class="kv__k" data-i18n="ask.kv.model">model</div>
+              <div id="docsModelView" class="kv__v mono">-</div>
+              <div class="kv__k" data-i18n="ask.kv.effort">effort</div>
+              <div id="docsEffortView" class="kv__v mono">-</div>
+              <div class="kv__k" data-i18n="ask.kv.sandbox">sandbox</div>
+              <div id="docsSandboxView" class="kv__v mono">-</div>
+            </div>
+            <div class="row">
+              <select id="docsProviderSelect" class="select">
+                <option value="codex">codex</option>
+                <option value="claude">claude</option>
+                <option value="fake">fake</option>
+              </select>
+              <select id="docsModelPreset" class="select input--sm" data-i18n-title="model.preset_title">
+                <option value="" data-i18n="model.preset_placeholder">model (preset)</option>
+              </select>
+              <input
+                id="docsModelInput"
+                class="input"
+                placeholder="model (optional)"
+                data-i18n-placeholder="ask.model_placeholder"
+                list="modelOptionsCodex"
+              />
+              <select id="docsEffortSelect" class="select" data-i18n-title="ask.effort_title">
+                <option value="" data-i18n="ask.effort_default">effort (default)</option>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="xhigh">xhigh</option>
+              </select>
+              <select id="docsSandboxSelect" class="select">
+                <option value="read-only">read-only</option>
+                <option value="workspace-write">workspace-write</option>
+                <option value="danger-full-access">danger-full-access</option>
+              </select>
+            </div>
+            <div class="row">
+              <button id="docsSaveConfigBtn" class="btn btn--ghost" data-i18n="ask.save_config">Save config</button>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="page-ask" class="page card hidden">
         <div class="row">
-          <h2 data-i18n="ask.title">Codex 用户窗口</h2>
-          <div class="hint" data-i18n="ask.hint">注：Codex 用户窗口绑定当前工作区，并使用 resume 续聊；写接口需要 ADMIN_TOKEN。</div>
-          <button id="askToggleThreadsBtn" type="button" class="btn btn--ghost" data-i18n="ask.toggle_threads_hide">收起对话</button>
-          <button id="askToggleConfigBtn" type="button" class="btn btn--ghost" data-i18n="ask.toggle_config_hide">收起配置</button>
+          <h2 data-i18n="ask.title">Codex 鐢ㄦ埛绐楀彛</h2>
+          <div class="hint" data-i18n="ask.hint">娉細Codex 鐢ㄦ埛绐楀彛缁戝畾褰撳墠宸ヤ綔鍖猴紝骞朵娇鐢?resume 缁亰锛涘啓鎺ュ彛闇€瑕?ADMIN_TOKEN銆?/div>
+          <button id="askToggleThreadsBtn" type="button" class="btn btn--ghost" data-i18n="ask.toggle_threads_hide">鏀惰捣瀵硅瘽</button>
+          <button id="askToggleConfigBtn" type="button" class="btn btn--ghost" data-i18n="ask.toggle_config_hide">鏀惰捣閰嶇疆</button>
         </div>
 
         <div id="askGrid" class="askGrid">
           <div id="askThreadsPanel">
-            <h3 data-i18n="ask.threads_title">对话</h3>
+            <h3 data-i18n="ask.threads_title">瀵硅瘽</h3>
             <div class="row">
-              <input id="askThreadSearch" class="input" placeholder="搜索…" data-i18n-placeholder="ask.thread_search_placeholder" />
-              <button id="askNewThreadBtn" class="btn" data-i18n="ask.new_thread">新建</button>
+              <input id="askThreadSearch" class="input" placeholder="鎼滅储鈥? data-i18n-placeholder="ask.thread_search_placeholder" />
+              <button id="askNewThreadBtn" class="btn" data-i18n="ask.new_thread">鏂板缓</button>
             </div>
-            <div id="askThreadsList" class="list">(无对话)</div>
+            <div id="askThreadsList" class="list">(鏃犲璇?</div>
           </div>
 
           <div id="askChatPanel">
             <div class="row">
-              <div id="askThreadHeader" class="hint mono">(未选择对话)</div>
+              <div id="askThreadHeader" class="hint mono">(鏈€夋嫨瀵硅瘽)</div>
               <div class="pill-group">
-                <div id="askStatusPill" class="pill" data-i18n="ask.status_idle">就绪</div>
-                <div id="askElapsed" class="pill pill--muted">耗时 —</div>
-                <div id="askUsage" class="pill pill--muted">用量 —</div>
+                <div id="askStatusPill" class="pill" data-i18n="ask.status_idle">灏辩华</div>
+                <div id="askElapsed" class="pill pill--muted">鑰楁椂 鈥?/div>
+                <div id="askUsage" class="pill pill--muted">鐢ㄩ噺 鈥?/div>
               </div>
-              <button id="askExportMdBtn" class="btn btn--ghost" data-i18n="ask.export_md">导出 .md</button>
-              <button id="askExportJsonlBtn" class="btn btn--ghost" data-i18n="ask.export_jsonl">导出 .jsonl</button>
+              <button id="askExportMdBtn" class="btn btn--ghost" data-i18n="ask.export_md">瀵煎嚭 .md</button>
+              <button id="askExportJsonlBtn" class="btn btn--ghost" data-i18n="ask.export_jsonl">瀵煎嚭 .jsonl</button>
                <label class="check" data-i18n-title="md.render_title">
                  <input id="askRenderMdToggle" type="checkbox" />
-                 <span data-i18n="md.render">MD 渲染</span>
+                 <span data-i18n="md.render">MD 娓叉煋</span>
                </label>
              </div>
              <div class="row">
                <div id="askMessagesHint" class="hint mono hidden"></div>
-               <button id="askLoadMoreBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_more">加载更多</button>
-               <button id="askLoadAllBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_all">加载全部</button>
+               <button id="askLoadMoreBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_more">鍔犺浇鏇村</button>
+               <button id="askLoadAllBtn" class="btn btn--ghost hidden" data-i18n="ask.messages_load_all">鍔犺浇鍏ㄩ儴</button>
              </div>
-             <div id="askMessages" class="chat">(暂无消息)</div>
+             <div id="askMessages" class="chat">(鏆傛棤娑堟伅)</div>
              <details id="askQueuePanel" class="details">
                <summary>
-                 <span data-i18n="ask.queue_title">队列</span>
+                 <span data-i18n="ask.queue_title">闃熷垪</span>
                  <span id="askQueueCount" class="mono"></span>
               </summary>
-              <div id="askQueue" class="queue">(无)</div>
+              <div id="askQueue" class="queue">(鏃?</div>
             </details>
             <div class="row">
               <textarea
                 id="askInput"
                 class="input input--textarea"
-                placeholder="输入你的问题…"
+                placeholder="杈撳叆浣犵殑闂鈥?
                 data-i18n-placeholder="ask.input_placeholder"
                 rows="4"
               ></textarea>
-              <button id="askSendBtn" class="btn btn--accent" data-i18n="ask.send">发送</button>
-              <button id="askStopBtn" class="btn btn--danger" data-i18n="ask.stop">终止</button>
+              <button id="askSendBtn" class="btn btn--accent" data-i18n="ask.send">鍙戦€?/button>
+              <button id="askStopBtn" class="btn btn--danger" data-i18n="ask.stop">缁堟</button>
             </div>
-            <div class="hint" data-i18n="ask.send_hint">快捷键：Ctrl+Enter 发送。</div>
+            <div class="hint" data-i18n="ask.send_hint">蹇嵎閿細Ctrl+Enter 鍙戦€併€?/div>
           </div>
 
           <div id="askConfigPanel">
-            <h3 data-i18n="ask.config_title">配置</h3>
+            <h3 data-i18n="ask.config_title">閰嶇疆</h3>
             <div class="kv kv--wrap kv--compact">
               <div class="kv__k">threadId</div>
               <div id="askThreadId" class="kv__v mono">-</div>
@@ -632,23 +743,23 @@
             </div>
 
             <div class="row">
-              <input id="askTitleInput" class="input" placeholder="标题" data-i18n-placeholder="ask.title_placeholder" />
-              <button id="askSaveTitleBtn" class="btn btn--ghost" data-i18n="ask.save_title">保存标题</button>
+              <input id="askTitleInput" class="input" placeholder="鏍囬" data-i18n-placeholder="ask.title_placeholder" />
+              <button id="askSaveTitleBtn" class="btn btn--ghost" data-i18n="ask.save_title">淇濆瓨鏍囬</button>
             </div>
 
             <div class="row">
               <select id="askModelPreset" class="select input--sm" data-i18n-title="model.preset_title">
-                <option value="" data-i18n="model.preset_placeholder">model（预设）</option>
+                <option value="" data-i18n="model.preset_placeholder">model锛堥璁撅級</option>
               </select>
               <input
                 id="askModelInput"
                 class="input"
-                placeholder="model（可选）"
+                placeholder="model锛堝彲閫夛級"
                 data-i18n-placeholder="ask.model_placeholder"
                 list="modelOptionsCodex"
               />
               <select id="askEffortSelect" class="select" title="reasoning effort" data-i18n-title="ask.effort_title">
-                <option value="" data-i18n="ask.effort_default">effort（默认）</option>
+                <option value="" data-i18n="ask.effort_default">effort锛堥粯璁わ級</option>
                 <option value="low">low</option>
                 <option value="medium">medium</option>
                 <option value="high">high</option>
@@ -659,17 +770,17 @@
                 <option value="workspace-write">workspace-write</option>
                 <option value="danger-full-access">danger-full-access</option>
               </select>
-              <button id="askSaveConfigBtn" class="btn btn--ghost" data-i18n="ask.save_config">保存配置</button>
+              <button id="askSaveConfigBtn" class="btn btn--ghost" data-i18n="ask.save_config">淇濆瓨閰嶇疆</button>
             </div>
 
             <div class="row">
-              <button id="askResetResumeBtn" class="btn btn--ghost" data-i18n="ask.reset_resume">重置续聊</button>
-              <button id="askDeleteThreadBtn" class="btn btn--danger" data-i18n="ask.delete_thread">删除</button>
+              <button id="askResetResumeBtn" class="btn btn--ghost" data-i18n="ask.reset_resume">閲嶇疆缁亰</button>
+              <button id="askDeleteThreadBtn" class="btn btn--danger" data-i18n="ask.delete_thread">鍒犻櫎</button>
             </div>
 
             <details class="details">
-              <summary data-i18n="ask.debug">调试</summary>
-              <pre id="askDebug" class="pre mono">(无)</pre>
+              <summary data-i18n="ask.debug">璋冭瘯</summary>
+              <pre id="askDebug" class="pre mono">(鏃?</pre>
             </details>
           </div>
         </div>
@@ -679,31 +790,31 @@
     <div id="workspaceModal" class="modal hidden" aria-hidden="true">
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="workspaceModalTitle">
         <div class="modal__header">
-          <div id="workspaceModalTitle" class="modal__title" data-i18n="workspace_modal.title">新建工作区</div>
-          <button id="workspaceModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">关闭</button>
+          <div id="workspaceModalTitle" class="modal__title" data-i18n="workspace_modal.title">鏂板缓宸ヤ綔鍖?/div>
+          <button id="workspaceModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">鍏抽棴</button>
         </div>
         <div id="workspaceModalError" class="modal__error hidden"></div>
         <label class="field">
-          <span data-i18n="workspace_modal.name_label">名称（可选）</span>
+          <span data-i18n="workspace_modal.name_label">鍚嶇О锛堝彲閫夛級</span>
           <input
             id="workspaceModalName"
             class="input"
-            placeholder="名称（可选）"
+            placeholder="鍚嶇О锛堝彲閫夛級"
             data-i18n-placeholder="workspace_modal.name_placeholder"
           />
         </label>
         <label class="field">
-          <span data-i18n="workspace_modal.root_label">rootPath（必填）</span>
+          <span data-i18n="workspace_modal.root_label">rootPath锛堝繀濉級</span>
           <input
             id="workspaceModalRoot"
             class="input"
-            placeholder="rootPath（绝对路径）"
+            placeholder="rootPath锛堢粷瀵硅矾寰勶級"
             data-i18n-placeholder="workspace_modal.root_placeholder"
           />
         </label>
         <div class="row">
           <label class="field">
-            <span data-i18n="workspace_modal.plan_label">planPath（默认 plan.md）</span>
+            <span data-i18n="workspace_modal.plan_label">planPath锛堥粯璁?plan.md锛?/span>
             <input
               id="workspaceModalPlan"
               class="input"
@@ -712,22 +823,33 @@
             />
           </label>
           <label class="field">
-            <span data-i18n="workspace_modal.convention_label">conventionPath（默认 约定.md）</span>
+            <span data-i18n="workspace_modal.convention_label">conventionPath锛堥粯璁?绾﹀畾.md锛?/span>
             <input
               id="workspaceModalConvention"
               class="input"
-              placeholder="约定.md"
+              placeholder="绾﹀畾.md"
               data-i18n-placeholder="workspace_modal.convention_placeholder"
             />
           </label>
         </div>
-        <div class="hint" data-i18n="workspace_modal.allowed_title">允许的 rootPath（来自 /api/health）</div>
-        <pre id="workspaceModalAllowedRoots" class="pre mono">(加载中…)</pre>
+        <div class="row">
+          <label class="field">
+            <span data-i18n="workspace_modal.requirements_label">requirementsPath??? ??.md?</span>
+            <input
+              id="workspaceModalRequirements"
+              class="input"
+              placeholder="??.md"
+              data-i18n-placeholder="workspace_modal.requirements_placeholder"
+            />
+          </label>
+        </div>
+        <div class="hint" data-i18n="workspace_modal.allowed_title">鍏佽鐨?rootPath锛堟潵鑷?/api/health锛?/div>
+        <pre id="workspaceModalAllowedRoots" class="pre mono">(鍔犺浇涓€?</pre>
         <div id="workspaceModalAllowedError" class="modal__error hidden"></div>
-        <div class="hint" data-i18n="workspace_modal.allowed_hint">rootPath 必须位于允许列表内，否则会 PATH_NOT_ALLOWED。</div>
+        <div class="hint" data-i18n="workspace_modal.allowed_hint">rootPath 蹇呴』浣嶄簬鍏佽鍒楄〃鍐咃紝鍚﹀垯浼?PATH_NOT_ALLOWED銆?/div>
         <div class="row modal__actions">
-          <button id="workspaceModalCancelBtn" class="btn btn--ghost" data-i18n="common.cancel">取消</button>
-          <button id="workspaceModalCreateBtn" class="btn" data-i18n="workspace_modal.create">创建</button>
+          <button id="workspaceModalCancelBtn" class="btn btn--ghost" data-i18n="common.cancel">鍙栨秷</button>
+          <button id="workspaceModalCreateBtn" class="btn" data-i18n="workspace_modal.create">鍒涘缓</button>
         </div>
       </div>
     </div>
@@ -735,34 +857,34 @@
     <div id="workspaceDocModal" class="modal hidden" aria-hidden="true">
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="workspaceDocModalTitle">
         <div class="modal__header">
-          <div id="workspaceDocModalTitle" class="modal__title" data-i18n="doc_modal.title_plan">加载计划</div>
-          <button id="workspaceDocModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">关闭</button>
+          <div id="workspaceDocModalTitle" class="modal__title" data-i18n="doc_modal.title_plan">鍔犺浇璁″垝</div>
+          <button id="workspaceDocModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">鍏抽棴</button>
         </div>
         <div class="row">
           <label class="check" data-i18n-title="md.render_title">
             <input id="workspaceDocRenderToggle" type="checkbox" />
-            <span data-i18n="md.render">MD 渲染</span>
+            <span data-i18n="md.render">MD 娓叉煋</span>
           </label>
-          <div id="workspaceDocModalInfo" class="hint mono">(未加载)</div>
+          <div id="workspaceDocModalInfo" class="hint mono">(鏈姞杞?</div>
         </div>
         <div id="workspaceDocModalError" class="modal__error hidden"></div>
-        <div id="workspaceDocModalBody" class="pre">(未加载)</div>
+        <div id="workspaceDocModalBody" class="pre">(鏈姞杞?</div>
       </div>
     </div>
 
     <div id="homeConfigModal" class="modal hidden" aria-hidden="true">
       <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="homeConfigModalTitle">
         <div class="modal__header">
-          <div id="homeConfigModalTitle" class="modal__title" data-i18n="home.configure_title">首页配置</div>
-          <button id="homeConfigModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">关闭</button>
+          <div id="homeConfigModalTitle" class="modal__title" data-i18n="home.configure_title">棣栭〉閰嶇疆</div>
+          <button id="homeConfigModalCloseBtn" class="btn btn--ghost" data-i18n="common.close">鍏抽棴</button>
         </div>
         <div class="row">
-          <button id="homeConfigShowAllBtn" class="btn btn--ghost" data-i18n="home.show_all">全部显示</button>
-          <button id="homeConfigHideAllBtn" class="btn btn--ghost" data-i18n="home.hide_all">全部隐藏</button>
+          <button id="homeConfigShowAllBtn" class="btn btn--ghost" data-i18n="home.show_all">鍏ㄩ儴鏄剧ず</button>
+          <button id="homeConfigHideAllBtn" class="btn btn--ghost" data-i18n="home.hide_all">鍏ㄩ儴闅愯棌</button>
         </div>
         <div id="homeConfigList" class="list">(empty)</div>
         <div class="row modal__actions">
-          <button id="homeConfigModalDoneBtn" class="btn btn--accent" data-i18n="common.close">关闭</button>
+          <button id="homeConfigModalDoneBtn" class="btn btn--accent" data-i18n="common.close">鍏抽棴</button>
         </div>
       </div>
     </div>
@@ -782,3 +904,4 @@
     <script src="/app.js"></script>
   </body>
 </html>
+
